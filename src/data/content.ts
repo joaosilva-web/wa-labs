@@ -163,8 +163,9 @@ export const services: Service[] = [
   },
   {
     kanji: '携',
-    reading: 'Keitai', // 携帯 = celular
-    meaning: 'Portátil',
+    // 携 sozinho se lê tazusaeru ("levar consigo"); 携帯 (keitai, dois kanji) é "celular"
+    reading: 'Tazusaeru',
+    meaning: 'Levar consigo',
     preview: { alt: 'Prévia de app' },
     title: 'Apps mobile',
     description:

@@ -13,18 +13,26 @@ const fullText = `${manifesto.paragraph} ${manifesto.highlight}`
 /** Seção escura que recebe a transição da hero (o fim da hero já é dessa cor). */
 export function Manifesto() {
   const year = new Date().getFullYear()
-  const sectionRef = useRef<HTMLElement>(null)
   const paragraphRef = useRef<HTMLParagraphElement>(null)
+  const ensoTrackRef = useRef<HTMLDivElement>(null)
 
   // --p no parágrafo: as palavras acendem (topo a 85% → fundo a 45% da tela)
   useViewProgress(paragraphRef)
-  // --enso na seção inteira: o círculo termina junto com o destaque final
-  // (end calibrado: quando o destaque acende, o fundo da seção está a ~68–81% da tela)
-  useViewProgress(sectionRef, { start: 0.85, end: 0.72, varName: '--enso' })
+  // o ensō usa o MESMO progresso do parágrafo (--enso-p no trilho); o CSS converte
+  // pra terminar exatamente quando o destaque final completa
+  useViewProgress(paragraphRef, { varName: '--enso-p', targetRef: ensoTrackRef })
 
   return (
-    <section ref={sectionRef} id="manifesto" className={styles.manifesto}>
-      <Enso className={styles.enso} />
+    <section id="manifesto" className={styles.manifesto}>
+      {/* trilho da altura da seção: o ensō fica sticky no centro da tela enquanto ela passa */}
+      <div
+        ref={ensoTrackRef}
+        className={styles.ensoTrack}
+        style={{ '--n': total } as CSSProperties}
+        aria-hidden="true"
+      >
+        <Enso className={styles.enso} />
+      </div>
 
       <div className={`container-wide ${styles.inner}`}>
         <SectionMeta

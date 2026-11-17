@@ -6,6 +6,7 @@
   color: var(--color-inverse-text);
   /* o ensō sai pela lateral sem gerar scroll horizontal */
   overflow-x: clip;
+  --enso-size: min(70vw, 760px);
 }
 
 .inner {
@@ -14,7 +15,9 @@
   display: flex;
   flex-direction: column;
   min-height: 100svh;
-  padding-block: var(--space-8) var(--space-24);
+  /* espaço depois da assinatura: o ensō (sticky) termina de desenhar ainda preso
+     no centro e fica completo por um trecho antes de a seção ir embora */
+  padding-block: var(--space-8) max(var(--space-24), calc(var(--enso-size) / 2 + 14svh));
 }
 
 .title {
@@ -108,19 +111,28 @@
 }
 
 /* ---------- ensō ---------- */
-.enso {
-  --enso-size: min(70vw, 760px);
+.ensoTrack {
+  /* mesma conta do parágrafo: a última palavra do destaque completa em p = n / (n + 4) */
+  --enso: clamp(0, calc(var(--enso-p, 0) * (var(--n) + 4) / var(--n)), 1);
 
   position: absolute;
+  inset: 0;
   z-index: 0;
-  top: 50%;
-  /* ancorado à esquerda e parcialmente pra fora: fica longe do parágrafo (à direita) */
-  left: calc(var(--enso-size) * -0.3);
+  pointer-events: none;
+}
+
+.enso {
+  /* sticky no centro da tela. Funciona porque a seção usa overflow-x: clip,
+     que não cria scroll container — overflow: hidden quebraria o sticky */
+  position: sticky;
+  top: calc(50svh - var(--enso-size) / 2);
   width: var(--enso-size);
   height: auto;
-  translate: 0 -50%;
+  /* ancorado à esquerda e parcialmente pra fora: longe do parágrafo (à direita) */
+  margin-left: calc(var(--enso-size) * -0.3);
   opacity: 0.35;
-  pointer-events: none;
+  /* gira devagar até a posição final enquanto se desenha; em 1 a rotação é 0 */
+  rotate: calc((1 - var(--enso)) * -24deg);
 }
 
 @media (max-width: 860px) {
@@ -131,10 +143,13 @@
     margin-top: var(--space-16);
   }
 
-  .enso {
+  .manifesto {
     --enso-size: 120vw;
-    left: 50%;
-    translate: -50% -50%;
+  }
+
+  .enso {
+    /* centralizado na horizontal (o % da margem é da largura do trilho) */
+    margin-left: calc(50% - var(--enso-size) / 2);
     opacity: 0.2;
   }
 }

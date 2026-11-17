@@ -73,13 +73,13 @@ export function Services() {
                   </span>
                 </span>
 
-                <span className={styles.body}>
+                <div className={styles.body}>
                   <h3 className={styles.serviceTitle}>
                     {/* sem hover (touch) o título quebra linha normalmente */}
                     {pointerFx ? <RollText>{service.title}</RollText> : service.title}
                   </h3>
-                  <span className={styles.description}>{service.description}</span>
-                </span>
+                  <p className={styles.description}>{service.description}</p>
+                </div>
 
                 <ul className={styles.tags}>
                   {service.tags.map((tag) => (

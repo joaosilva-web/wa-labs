@@ -14,7 +14,7 @@
   stroke: #fff; /* cor de máscara (luminância), não é cor de interface */
   stroke-linecap: butt;
   stroke-linejoin: round;
-  stroke-dashoffset: calc(var(--len, 0) * (1 - var(--enso, 0)));
+  stroke-dashoffset: calc(var(--len, 0) * (1 - var(--enso, 0)) * 1px);
 }
 
 /* o pincel sai do papel: um pontinho no fim, só quando o traço termina */

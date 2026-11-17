@@ -6,8 +6,10 @@ type Options = {
   start?: number
   /** p = 1 quando o FUNDO do elemento chega a esta fração da altura da tela. */
   end?: number
-  /** CSS variable escrita no próprio elemento. */
+  /** CSS variable escrita no elemento. */
   varName?: string
+  /** Escreve a variável em outro elemento (o progresso continua sendo do `ref`). */
+  targetRef?: RefObject<HTMLElement | null>
 }
 
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n))
@@ -19,17 +21,18 @@ const clamp01 = (n: number) => Math.min(1, Math.max(0, n))
  */
 export function useViewProgress(
   ref: RefObject<HTMLElement | null>,
-  { start = 0.85, end = 0.45, varName = '--p' }: Options = {},
+  { start = 0.85, end = 0.45, varName = '--p', targetRef }: Options = {},
 ) {
   const reduced = useMediaQuery(REDUCED_MOTION)
 
   useEffect(() => {
     const el = ref.current
-    if (!el) return
+    const target = targetRef ? targetRef.current : el
+    if (!el || !target) return
 
     if (reduced) {
-      el.style.setProperty(varName, '1')
-      return () => el.style.removeProperty(varName)
+      target.style.setProperty(varName, '1')
+      return () => target.style.removeProperty(varName)
     }
 
     let frame = 0
@@ -45,7 +48,7 @@ export function useViewProgress(
       const value = p.toFixed(4)
       if (value !== last) {
         last = value
-        el.style.setProperty(varName, value)
+        target.style.setProperty(varName, value)
       }
     }
     const schedule = () => {
@@ -59,7 +62,7 @@ export function useViewProgress(
       cancelAnimationFrame(frame)
       window.removeEventListener('scroll', schedule)
       window.removeEventListener('resize', schedule)
-      el.style.removeProperty(varName)
+      target.style.removeProperty(varName)
     }
-  }, [ref, start, end, varName, reduced])
+  }, [ref, targetRef, start, end, varName, reduced])
 }
