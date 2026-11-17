@@ -1,19 +1,38 @@
-import { manifesto } from '../data/content'
+import { Fragment, useRef, type CSSProperties } from 'react'
+import { manifesto, sections } from '../data/content'
+import { useViewProgress } from '../hooks/useViewProgress'
+import { Enso } from './Enso'
+import { SectionMeta } from './SectionMeta'
 import styles from './Manifesto.module.css'
+
+const words = manifesto.paragraph.split(' ')
+const highlight = manifesto.highlight.split(' ')
+const total = words.length + highlight.length
+const fullText = `${manifesto.paragraph} ${manifesto.highlight}`
 
 /** Seção escura que recebe a transição da hero (o fim da hero já é dessa cor). */
 export function Manifesto() {
   const year = new Date().getFullYear()
+  const sectionRef = useRef<HTMLElement>(null)
+  const paragraphRef = useRef<HTMLParagraphElement>(null)
+
+  // --p no parágrafo: as palavras acendem (topo a 85% → fundo a 45% da tela)
+  useViewProgress(paragraphRef)
+  // --enso na seção inteira: o círculo termina junto com o destaque final
+  // (end calibrado: quando o destaque acende, o fundo da seção está a ~68–81% da tela)
+  useViewProgress(sectionRef, { start: 0.85, end: 0.72, varName: '--enso' })
 
   return (
-    <section id="manifesto" className={styles.manifesto}>
+    <section ref={sectionRef} id="manifesto" className={styles.manifesto}>
+      <Enso className={styles.enso} />
+
       <div className={`container-wide ${styles.inner}`}>
-        <div className={styles.meta}>
-          <span>{manifesto.label}</span>
-          <span>
-            {manifesto.metaPrefix} — {year}
-          </span>
-        </div>
+        <SectionMeta
+          index={sections.manifesto}
+          label={manifesto.label}
+          aside={`${manifesto.metaPrefix} — ${year}`}
+          tone="dark"
+        />
 
         <h2 className={styles.title}>
           {manifesto.lines.map((line, i) => (
@@ -22,6 +41,33 @@ export function Manifesto() {
             </span>
           ))}
         </h2>
+
+        <p ref={paragraphRef} className={styles.paragraph} style={{ '--n': total } as CSSProperties}>
+          <span className={styles.srOnly}>{fullText}</span>
+          <span aria-hidden="true">
+            {words.map((word, i) => (
+              <Fragment key={i}>
+                {i > 0 && ' '}
+                <span className={styles.word} style={{ '--i': i } as CSSProperties}>
+                  {word}
+                </span>
+              </Fragment>
+            ))}{' '}
+            {highlight.map((word, j) => (
+              <Fragment key={`h${j}`}>
+                {j > 0 && ' '}
+                <span
+                  className={`${styles.word} ${styles.hl} ${j === highlight.length - 1 ? styles.hlLast : ''}`}
+                  style={{ '--i': words.length + j } as CSSProperties}
+                >
+                  {word}
+                </span>
+              </Fragment>
+            ))}
+          </span>
+        </p>
+
+        <p className={styles.signature}>{manifesto.signature}</p>
       </div>
     </section>
   )

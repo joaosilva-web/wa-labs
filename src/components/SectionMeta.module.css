@@ -1,0 +1,25 @@
+.meta {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--meta-border);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--meta-color);
+}
+
+/* fundo escuro (--color-inverse-bg) */
+.dark {
+  --meta-border: color-mix(in srgb, var(--color-inverse-text) 15%, transparent);
+  /* 65% do texto inverso sobre sumi ≈ 6.2:1 */
+  --meta-color: color-mix(in srgb, var(--color-inverse-text) 65%, transparent);
+}
+
+/* fundo claro (--color-bg) */
+.light {
+  --meta-border: var(--color-border);
+  --meta-color: var(--color-text-muted);
+}

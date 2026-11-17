@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { nav } from '../data/content'
+import { nav, sectionNumber } from '../data/content'
 import { Button } from './Button'
 import { Logo } from './Logo'
 import styles from './Header.module.css'
@@ -25,11 +25,11 @@ export function Header() {
 
         <nav id="menu" className={`${styles.nav} ${open ? styles.open : ''}`}>
           <ul>
-            {nav.map((item, i) => (
+            {nav.map((item) => (
               <li key={item.href}>
                 <a href={item.href} onClick={() => setOpen(false)}>
                   <sup className={styles.num} aria-hidden="true">
-                    {String(i + 1).padStart(2, '0')}
+                    {sectionNumber(item.section)}
                   </sup>
                   {item.label}
                 </a>

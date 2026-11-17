@@ -1,0 +1,77 @@
+.preview {
+  --w: 220px;
+  --h: 110px;
+
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 50;
+  width: var(--w);
+  height: var(--h);
+  /* centrado no cursor: o JS escreve translate3d(x, y) com a posição do mouse */
+  margin: calc(var(--h) / -2) 0 0 calc(var(--w) / -2);
+  pointer-events: none;
+  opacity: 0;
+  scale: 0.6;
+  transition:
+    opacity 0.25s var(--ease),
+    scale 0.4s var(--ease);
+}
+
+.preview[data-visible] {
+  opacity: 1;
+  scale: 1;
+}
+
+/* mesmo formato da pílula da hero */
+.pill {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-inverse-text) 20%, transparent);
+}
+
+/* corte seco: só o slide ativo aparece */
+.slide {
+  position: absolute;
+  inset: 0;
+  visibility: hidden;
+}
+
+.slide[data-active] {
+  visibility: visible;
+}
+
+.slide > :is(img, video) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.placeholder {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  font-family: var(--font-display);
+  font-size: 3.25rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--color-on-primary);
+}
+
+/* gradientes da paleta (o kanji fica sempre sobre a parte clara) */
+.tone0 {
+  background: radial-gradient(circle at 50% 50%, var(--moegi) 0 35%, var(--kaki) 100%);
+}
+
+.tone1 {
+  background: radial-gradient(circle at 50% 50%, var(--moegi) 0 30%, var(--nibi) 100%);
+}
+
+.tone2 {
+  background: linear-gradient(120deg, var(--kaki), var(--moegi) 45% 55%, var(--kaki));
+}

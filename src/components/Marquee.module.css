@@ -1,0 +1,53 @@
+.marquee {
+  /* de ponta a ponta, sem gerar scroll horizontal */
+  overflow-x: clip;
+  padding-block: var(--space-6);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.track {
+  display: flex;
+  width: max-content;
+  animation: marquee 32s linear infinite;
+  will-change: transform;
+}
+
+.group {
+  display: flex;
+  align-items: center;
+  flex: none;
+  font-family: var(--font-display);
+  font-size: clamp(3rem, 8vw, 7rem);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.item,
+.sep {
+  /* espaço igual dos dois lados: a emenda entre as cópias fica idêntica ao resto */
+  padding-inline: 0.3em;
+}
+
+.sep {
+  font-weight: 200;
+}
+
+/* uma cópia inteira para a esquerda = volta ao início sem salto */
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}

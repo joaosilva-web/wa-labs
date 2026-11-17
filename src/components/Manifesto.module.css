@@ -4,31 +4,21 @@
   margin-top: -1px;
   background: var(--color-inverse-bg);
   color: var(--color-inverse-text);
+  /* o ensō sai pela lateral sem gerar scroll horizontal */
+  overflow-x: clip;
 }
 
 .inner {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: var(--space-16);
   min-height: 100svh;
   padding-block: var(--space-8) var(--space-24);
 }
 
-.meta {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--space-4);
-  padding-bottom: var(--space-4);
-  border-bottom: 1px solid color-mix(in srgb, var(--color-inverse-text) 15%, transparent);
-  font-family: var(--font-mono);
-  font-size: var(--text-sm);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: color-mix(in srgb, var(--color-inverse-text) 65%, transparent);
-}
-
 .title {
+  margin-top: var(--space-16);
   font-size: clamp(2.25rem, 1rem + 5.5vw, 7rem);
   line-height: 1;
   letter-spacing: -0.04em;
@@ -43,4 +33,108 @@
 /* mesmo contraste de pesos da hero */
 .line + .line {
   font-weight: 900;
+}
+
+/* ---------- parágrafo que acende ---------- */
+.paragraph {
+  /* quantas palavras já foram alcançadas (com 4 de folga pra última acender inteira) */
+  --k: calc(var(--p, 0) * (var(--n) + 4));
+
+  position: relative;
+  isolation: isolate; /* o fundo verde do destaque fica atrás de todo o texto */
+  align-self: flex-end;
+  width: 52%;
+  max-width: 24ch;
+  margin-top: var(--space-24);
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 0.8rem + 2.6vw, 3.25rem);
+  font-weight: 300;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.word {
+  opacity: clamp(0.18, calc(var(--k) - var(--i)), 1);
+  transition: opacity 150ms linear;
+}
+
+/* destaque final: fundo verde cresce da esquerda; o texto vira on-primary junto */
+.hl {
+  --lit: clamp(0, calc(var(--k) - var(--i)), 1);
+
+  position: relative;
+  color: color-mix(
+    in srgb,
+    var(--color-on-primary) calc(var(--lit) * 100%),
+    var(--color-inverse-text)
+  );
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+.hl::before {
+  content: '';
+  position: absolute;
+  /* padding horizontal pequeno; à direita cobre também o espaço até a próxima palavra */
+  inset: 0.04em -0.34em 0.02em -0.12em;
+  z-index: -1;
+  background: var(--color-primary);
+  transform: scaleX(var(--lit));
+  transform-origin: left;
+  transition: transform 150ms linear;
+}
+
+.hlLast::before {
+  right: -0.12em;
+}
+
+.signature {
+  align-self: flex-end;
+  margin-top: var(--space-12);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-inverse-text) 65%, transparent);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---------- ensō ---------- */
+.enso {
+  --enso-size: min(70vw, 760px);
+
+  position: absolute;
+  z-index: 0;
+  top: 50%;
+  /* ancorado à esquerda e parcialmente pra fora: fica longe do parágrafo (à direita) */
+  left: calc(var(--enso-size) * -0.3);
+  width: var(--enso-size);
+  height: auto;
+  translate: 0 -50%;
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+@media (max-width: 860px) {
+  .paragraph {
+    align-self: stretch;
+    width: auto;
+    max-width: none;
+    margin-top: var(--space-16);
+  }
+
+  .enso {
+    --enso-size: 120vw;
+    left: 50%;
+    translate: -50% -50%;
+    opacity: 0.2;
+  }
 }

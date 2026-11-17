@@ -1,0 +1,24 @@
+/* --enso (0 → 1) vem da seção (useViewProgress); --len é o comprimento do traço-guia */
+.enso {
+  display: block;
+  overflow: visible;
+}
+
+.brush {
+  fill: var(--color-primary);
+}
+
+/* traço-guia da máscara: branco revela, butt pra não "vazar" um ponto em 0 */
+.spine {
+  fill: none;
+  stroke: #fff; /* cor de máscara (luminância), não é cor de interface */
+  stroke-linecap: butt;
+  stroke-linejoin: round;
+  stroke-dashoffset: calc(var(--len, 0) * (1 - var(--enso, 0)));
+}
+
+/* o pincel sai do papel: um pontinho no fim, só quando o traço termina */
+.tip {
+  fill: var(--color-primary);
+  opacity: clamp(0, calc((var(--enso, 0) - 0.97) * 34), 1);
+}

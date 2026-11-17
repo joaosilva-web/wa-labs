@@ -1,9 +1,19 @@
 // Conteúdo do site num lugar só — edite os textos aqui.
 
+/**
+ * Numeração única das seções — header, rótulos (00) Manifesto, (01) Serviços…
+ * O Manifesto fica fora do nav, por isso é o 00.
+ */
+export const sections = { manifesto: 0, servicos: 1, processo: 2, contato: 3 } as const
+export type SectionId = keyof typeof sections
+
+/** Número da seção com dois dígitos: 1 → "01". */
+export const sectionNumber = (id: SectionId) => String(sections[id]).padStart(2, '0')
+
 export const nav = [
-  { label: 'Serviços', href: '#servicos' },
-  { label: 'Processo', href: '#processo' },
-  { label: 'Contato', href: '#contato' },
+  { label: 'Serviços', href: '#servicos', section: 'servicos' },
+  { label: 'Processo', href: '#processo', section: 'processo' },
+  { label: 'Contato', href: '#contato', section: 'contato' },
 ] as const
 
 /* ---------------------------------------------------------------
@@ -90,21 +100,52 @@ export const preloader = {
 }
 
 export const manifesto = {
-  label: '(01) Manifesto',
+  label: 'Manifesto', // vira "(00) Manifesto" pelo mapa de seções
   metaPrefix: '和',
   lines: ['Não entregamos só código.', 'Construímos em harmonia.'],
+  /** Acende palavra por palavra com o scroll */
+  paragraph:
+    'A Wa Labs nasceu de uma ideia simples: software bom é aquele que se encaixa. ' +
+    'Design e código caminham juntos desde o primeiro rascunho — sem template pronto, ' +
+    'sem atalho, sem etapa pulada. Cada projeto começa do zero, é construído com calma ' +
+    'e entregue com precisão, pra funcionar',
+  /** Continuação do parágrafo que acende com fundo verde */
+  highlight: 'em harmonia com o seu negócio.',
+  signature: '— Wa Labs, 和',
 }
 
 export type Service = {
   kanji: string
+  /** Leitura do kanji (romaji) e significado — aparecem embaixo dele. */
+  reading: string
+  meaning: string
   title: string
   description: string
   tags: string[]
+  /** Mídia da pílula que segue o cursor. Sem `src`: gradiente da paleta com o kanji. */
+  preview?: ReelItem
 }
+
+export const servicesSection = {
+  label: 'Serviços',
+  /** "03 frentes" — o número vem do tamanho da lista */
+  countLabel: 'frentes',
+  title: ['Três frentes,', 'uma só harmonia.'],
+  lead: 'Do site institucional ao app na loja — cada projeto nasce do zero, pensado pro seu negócio.',
+  href: '#contato',
+  /** Início da frase lida no lugar da faixa (só leitores de tela) */
+  marqueeIntro: 'Trabalhamos com',
+}
+
+/** Faixa em movimento que fecha a seção de serviços (o 和 é o separador). */
+export const marquee = ['Sites', 'Sistemas web', 'Apps mobile', 'React', 'Flutter', 'TypeScript']
 
 export const services: Service[] = [
   {
     kanji: '網',
+    reading: 'Ami',
+    meaning: 'Rede',
+    preview: { alt: 'Prévia de site' },
     title: 'Sites e landing pages',
     description:
       'Páginas rápidas, responsivas e pensadas pra converter visitantes em clientes.',
@@ -112,6 +153,9 @@ export const services: Service[] = [
   },
   {
     kanji: '築',
+    reading: 'Kizuku',
+    meaning: 'Construir',
+    preview: { alt: 'Prévia de sistema web' },
     title: 'Sistemas web',
     description:
       'Painéis, plataformas e ferramentas internas que resolvem problemas reais do dia a dia.',
@@ -119,6 +163,9 @@ export const services: Service[] = [
   },
   {
     kanji: '携',
+    reading: 'Keitai', // 携帯 = celular
+    meaning: 'Portátil',
+    preview: { alt: 'Prévia de app' },
     title: 'Apps mobile',
     description:
       'Aplicativos para Android e iOS com uma única base de código, do protótipo à loja.',
