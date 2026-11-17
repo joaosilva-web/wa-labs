@@ -1,0 +1,28 @@
+.roll {
+  --roll-lh: 1.25em;
+  /* respiro entre as cópias: acentos e cedilhas não aparecem na borda da janela */
+  --roll-gap: 0.4em;
+
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  row-gap: var(--roll-gap);
+  height: var(--roll-lh);
+  overflow: hidden;
+  vertical-align: top;
+}
+
+.item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  height: var(--roll-lh);
+  line-height: var(--roll-lh);
+  white-space: nowrap;
+  transition: transform 0.35s cubic-bezier(0.7, 0, 0.2, 1);
+}
+
+/* Dispara no hover (ou foco por teclado) do link/botão que contém o texto */
+:is(a, button, [data-roll]):is(:hover, :focus-visible) .item {
+  transform: translateY(calc(-100% - var(--roll-gap)));
+}

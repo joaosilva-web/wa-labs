@@ -1,0 +1,60 @@
+/*
+ * Design tokens da Wa Labs
+ * ------------------------------------------------------------
+ * A paleta ainda está em aberto. Os valores abaixo são uma
+ * proposta provisória com cores tradicionais japonesas —
+ * troque só aqui e o site inteiro acompanha.
+ */
+:root {
+  /* Cores base (provisórias) */
+  --sumi: #333333;      /* 墨 sumi — tinta nanquim */
+  --kinari: #fbfbff;    /* 生成 kinari — algodão cru */
+  --moegi: #aacf53;     /* 萌黄 moegi — verde de broto novo */
+  --kaki: #2A7F62;      /* 柿 kaki — laranja de caqui */
+  --nibi: #727171;      /* 鈍 nibi — cinza chumbo */
+
+  /* Papéis semânticos */
+  --color-bg: var(--kinari);
+  --color-surface: #ffffff;
+  --color-text: var(--sumi);
+  --color-text-muted: var(--nibi);
+  --color-primary: var(--moegi);
+  --color-on-primary: var(--sumi); /* texto em cima do verde: branco não tem contraste */
+  --color-accent: var(--kaki);
+  --color-inverse-bg: var(--sumi);
+  --color-inverse-text: var(--kinari);
+  --color-border: color-mix(in srgb, var(--sumi) 12%, transparent);
+
+  /* Tipografia */
+  --font-display: 'Unbounded', system-ui, sans-serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.25rem;
+  --text-xl: clamp(1.5rem, 1.2rem + 1.2vw, 2rem);
+  --text-2xl: clamp(2rem, 1.4rem + 2.6vw, 3.25rem);
+  --text-hero: clamp(2.75rem, 1.6rem + 5vw, 5.5rem);
+
+  /* Espaçamento */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-24: 6rem;
+
+  /* Layout */
+  --container: 1200px;
+  --container-wide: 1680px; /* header + hero editorial */
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 28px;
+  --radius-pill: 999px;
+
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+}

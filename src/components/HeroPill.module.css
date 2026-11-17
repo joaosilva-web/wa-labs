@@ -1,0 +1,121 @@
+/*
+ * Todas as medidas em em: a pílula herda o font-size do título
+ * e acompanha o tamanho da linha em qualquer viewport.
+ */
+.pill {
+  --pill-h: 0.8em;
+
+  position: relative;
+  display: inline-block;
+  flex: none;
+  height: var(--pill-h);
+  aspect-ratio: 2.2;
+  vertical-align: -0.06em;
+  font-variation-settings: normal;
+}
+
+/* Anel fino de 1px, um pouco maior e deslocado */
+.pill::before {
+  content: '';
+  position: absolute;
+  inset: -0.055em;
+  border: 1px solid var(--color-text);
+  border-radius: var(--radius-pill);
+  transform: translate(0.035em, -0.025em);
+  pointer-events: none;
+}
+
+.body {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+/* Corte seco: só o slide ativo aparece, sem transição */
+.slide {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  visibility: hidden;
+}
+
+.slide[data-active] {
+  visibility: visible;
+}
+
+.slide > :is(img, video) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.kanji {
+  font-family: var(--font-display);
+  font-size: var(--kanji-size, calc(var(--pill-h) * 0.68));
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+/* Placeholders de projeto — gradientes da paleta tradicional */
+.placeholder {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+.tone1 {
+  background:
+    radial-gradient(circle at 75% 30%, var(--moegi) 0 18%, transparent 45%),
+    linear-gradient(135deg, var(--sumi), var(--nibi));
+}
+
+.tone2 {
+  background: linear-gradient(120deg, var(--moegi) 10%, var(--kaki) 90%);
+}
+
+.tone0 {
+  background:
+    radial-gradient(circle at 25% 70%, var(--kaki) 0 20%, transparent 50%),
+    linear-gradient(160deg, var(--nibi), var(--sumi));
+}
+
+.label {
+  padding: 0.4em 0.8em;
+  border-radius: var(--radius-pill);
+  background: var(--color-inverse-bg);
+  color: var(--color-inverse-text);
+  font-family: var(--font-mono);
+  font-size: var(--pill-label-size, 0.085em);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.badge {
+  /* "monta" na borda superior direita, sem cobrir o conteúdo */
+  position: absolute;
+  top: 0;
+  right: 0;
+  transform: translate(12%, -55%);
+  padding: 0.45em 0.8em;
+  border-radius: var(--radius-pill);
+  background: var(--color-inverse-bg);
+  color: var(--color-inverse-text);
+  font-family: var(--font-mono);
+  /* em = tamanho do título: escala junto com a linha */
+  font-size: var(--pill-badge-size, 0.095em);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  /* some no começo do scroll (p 0 → 0.05), junto com o congelamento do reel */
+  opacity: calc(1 - clamp(0, var(--p, 0) / 0.05, 1));
+}

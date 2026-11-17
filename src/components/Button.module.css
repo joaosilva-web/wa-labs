@@ -1,0 +1,66 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-pill);
+  border: 2px solid transparent;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--text-sm);
+  white-space: nowrap;
+  transition:
+    transform 0.2s var(--ease),
+    background-color 0.2s var(--ease),
+    color 0.2s var(--ease);
+}
+
+.button:hover {
+  transform: translateY(-2px);
+}
+
+.primary {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.primary:hover {
+  background: var(--color-inverse-bg);
+  color: var(--color-inverse-text);
+}
+
+.ghost {
+  border-color: var(--color-text);
+  color: var(--color-text);
+}
+
+.ghost:hover {
+  background: var(--color-text);
+  color: var(--color-bg);
+}
+
+/* Usado sobre fundos verdes (ex.: caixa de contato) */
+.inverse {
+  background: var(--color-inverse-bg);
+  color: var(--color-inverse-text);
+}
+
+.inverse:hover {
+  background: var(--color-inverse-text);
+  color: var(--color-text);
+}
+
+/* Link de texto sublinhado, com o mesmo texto rolando no hover */
+.link {
+  padding: 0 0 2px;
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  border-radius: 0;
+  text-transform: uppercase;
+  color: var(--color-text);
+}
+
+.link:hover {
+  transform: none;
+}

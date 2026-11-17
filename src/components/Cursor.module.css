@@ -1,0 +1,39 @@
+/* O cursor nativo continua visível — isto é só o acompanhante. */
+.cursor {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  pointer-events: none;
+  will-change: transform;
+  transition: opacity 0.2s var(--ease);
+}
+
+.cursor[data-state='hidden'] {
+  opacity: 0;
+}
+
+.shape {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 8px;
+  height: 8px;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  background: var(--color-accent);
+  transform: translate(-50%, -50%);
+  transition:
+    width 0.25s var(--ease),
+    height 0.25s var(--ease),
+    background-color 0.25s var(--ease),
+    border-color 0.25s var(--ease);
+}
+
+/* Sobre links e botões: anel vazado */
+.cursor[data-state='hover'] .shape {
+  width: 36px;
+  height: 36px;
+  border-color: var(--color-text);
+  background: transparent;
+}

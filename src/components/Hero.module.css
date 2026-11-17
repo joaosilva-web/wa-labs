@@ -1,0 +1,406 @@
+/*
+ * Hero editorial — tipografia gigante, contraste de pesos
+ * e metadados em mono. 和: calma, precisão, respiro.
+ */
+/* ---------- Transição de scroll ----------
+ * .hero é o wrapper alto; .sticky fica preso ocupando a tela inteira.
+ * O JS só escreve --p (0 → 1). Todo o resto é derivado aqui com calc():
+ *   p 0    → 0.05  badge some, reel congela (HeroPill)
+ *   p 0    → 0.6   linhas se afastam na horizontal
+ *   p 0.2  → 0.75  pílula expande até a tela cheia (HeroLayer)
+ *   p 0.6  → 0.75  header some (Header, via --header-hide)
+ *   p 0.75 → 1     escurece até --color-inverse-bg (emenda com o Manifesto)
+ */
+.hero {
+  --header-h: 72px;
+  --pin-length: 280svh;
+  --shift1: -60vw;
+  --shift2: 40vw;
+  --shift3: -15vw;
+
+  position: relative;
+  height: var(--pin-length);
+  /* a hero passa por baixo do header (sticky), então o pin começa já no scroll 0 */
+  margin-top: calc(var(--header-h) * -1);
+  /* clip (e não hidden): corta o excesso lateral sem quebrar o sticky */
+  overflow-x: clip;
+}
+
+.sticky {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  padding-top: var(--header-h);
+  overflow: clip;
+  background: var(--color-bg);
+
+  /* linhas: p 0 → 0.6 com ease-in-out (smoothstep) */
+  --e1: clamp(0, var(--p, 0) / 0.6, 1);
+  --s1: calc(var(--e1) * var(--e1) * (3 - 2 * var(--e1)));
+  --x1: calc(var(--s1) * var(--shift1));
+  --x2: calc(var(--s1) * var(--shift2));
+  --x3: calc(var(--s1) * var(--shift3));
+
+  /* pílula: p 0.2 → 0.75 com ease-in-out */
+  --e2r: clamp(0, (var(--p, 0) - 0.2) / 0.55, 1);
+  --e2: calc(var(--e2r) * var(--e2r) * (3 - 2 * var(--e2r)));
+
+  /* escurecimento: p 0.75 → 1 (linear, pra chegar exatamente em 1 no fim) */
+  --e3: clamp(0, (var(--p, 0) - 0.75) / 0.25, 1);
+}
+
+.inner {
+  /* acima do canvas da espiral (z-index 0) e abaixo da camada da pílula (z-index 5) */
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  /* a composição inteira (meta → título → rodapé) cabe na primeira tela */
+  height: 100%;
+  padding-bottom: var(--space-6);
+}
+
+/* Texto mono compartilhado */
+.meta,
+.intro,
+.disciplines,
+.scroll,
+.vertical {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+/* ---------- 1. Barra de metadados ---------- */
+.meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-4);
+  padding-block: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+  white-space: nowrap;
+}
+
+.meta > :first-child,
+.now {
+  color: var(--color-text);
+}
+
+.now {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+}
+
+.liveDot {
+  width: 0.5em;
+  height: 0.5em;
+  border-radius: 50%;
+  background: var(--color-accent);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.clock {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- 2. Introdução ---------- */
+.introRow {
+  position: relative;
+  padding-top: var(--space-6);
+}
+
+.intro {
+  max-width: 34ch;
+  line-height: 1.5;
+}
+
+.vertical {
+  /* absoluto: decora o canto sem empurrar o título pra baixo */
+  position: absolute;
+  top: var(--space-6);
+  right: 0;
+  writing-mode: vertical-rl;
+  white-space: nowrap; /* fora do fluxo, sem isso o texto vira duas colunas */
+  letter-spacing: 0.35em;
+  text-transform: none;
+}
+
+/* ---------- 3. Título ---------- */
+.titleWrap {
+  /* o tamanho do título também respeita a largura disponível (cqi) */
+  container-type: inline-size;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-block: var(--space-4) var(--space-6);
+}
+
+.title {
+  /* ~10.5em = largura da linha 1 ("Software" + pílula + "feito");
+     a folga é pra "feito" engordar com o cursor sem encostar na borda */
+  /* largura (vw) E altura (svh) da tela; o cqi garante que a linha 1 nunca estoura */
+  font-size: min(clamp(2.75rem, min(9vw, 13svh), 10rem), 100cqi / 11.2);
+  line-height: 0.95;
+  letter-spacing: -0.045em;
+  font-weight: 200;
+  text-wrap: nowrap;
+}
+
+.line {
+  display: block;
+  white-space: nowrap;
+  will-change: transform;
+}
+
+.line:nth-child(1) {
+  transform: translateX(var(--x1, 0px));
+}
+
+.line:nth-child(2) {
+  transform: translateX(var(--x2, 0px));
+}
+
+.line:nth-child(3) {
+  transform: translateX(var(--x3, 0px));
+}
+
+/* Quando a camada assume, a pílula original some (sem duplicar) */
+[data-expanded] .pillInline,
+[data-expanded] .pillStandalone {
+  visibility: hidden;
+}
+
+.alignStart {
+  text-align: left;
+}
+
+.alignIndent {
+  padding-left: 15%;
+}
+
+.alignEnd {
+  text-align: right;
+}
+
+.heavy {
+  font-weight: 900;
+}
+
+/* Palavras leves: uma span por letra, peso controlado por useProximityWeight */
+.word {
+  white-space: nowrap;
+}
+
+.letter {
+  font-weight: 200;
+  font-variation-settings: 'wght' 200;
+}
+
+/* Pontinho de destaque embaixo da linha */
+.dot {
+  /* inline-block com o mesmo line-height: a caixa vira a da linha, independente das métricas da fonte */
+  display: inline-block;
+  position: relative;
+}
+
+.dot::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 0.02em);
+  width: max(5px, 0.07em);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--color-accent);
+  transform: translateX(-50%);
+}
+
+.titleWrap .pillStandalone {
+  display: none;
+}
+
+/* ---------- 5. Rodapé ---------- */
+.footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--space-8);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--color-border);
+}
+
+.lead {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.subtitle {
+  max-width: 28ch;
+  /* encolhe em telas baixas (notebooks) pra sobrar altura pro título */
+  font-size: min(var(--text-xl), 3.6svh);
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+}
+
+.scroll {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  padding-left: var(--space-6);
+  border-left: 1px solid var(--color-border);
+}
+
+/* ---------- Relógio ---------- */
+@keyframes pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/* ---------- Responsivo ---------- */
+@media (max-width: 760px) {
+  .hero {
+    --pin-length: 200svh;
+    --shift1: -20vw;
+    --shift2: 13vw;
+    --shift3: -6vw;
+  }
+}
+
+/* Sem movimento: sem pin, sem wrapper alto — a hero fica estática */
+@media (prefers-reduced-motion: reduce) {
+  .hero {
+    height: auto;
+    margin-top: 0;
+  }
+
+  .sticky {
+    position: relative;
+    height: auto;
+    min-height: calc(100svh - var(--header-h));
+    padding-top: 0;
+  }
+
+  .inner {
+    height: auto;
+    min-height: inherit;
+  }
+}
+
+@media (max-width: 1100px) {
+  .hideTablet {
+    display: none;
+  }
+}
+
+@media (max-width: 860px) {
+  .alignIndent,
+  .alignEnd {
+    padding-left: 0;
+    text-align: left;
+  }
+
+  .title .pillInline {
+    --pill-h: 0.66em;
+    /* título pequeno: badge e rótulo continuam em em, mas com piso legível */
+    --pill-badge-size: max(0.095em, 0.5625rem);
+    --pill-label-size: max(0.085em, 0.5625rem);
+  }
+
+  .title {
+    font-size: min(clamp(2.75rem, min(9vw, 13svh), 10rem), 100cqi / 10.9);
+  }
+
+  .vertical {
+    display: none;
+  }
+
+  .footer {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .scroll {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .hideMobile {
+    display: none;
+  }
+
+  .introRow {
+    padding-top: var(--space-8);
+  }
+}
+
+@media (max-width: 480px) {
+  .title .pillInline {
+    display: none;
+  }
+
+  .titleWrap .pillStandalone {
+    display: inline-block;
+    align-self: flex-start;
+    font-size: clamp(3.5rem, 22vw, 5rem);
+    margin-bottom: var(--space-6);
+  }
+
+  .title {
+    /* sem a pílula, a linha 1 fica mais curta */
+    font-size: min(clamp(2.75rem, min(9vw, 13svh), 10rem), 100cqi / 9);
+  }
+}
+
+/* ---------- Entrada (depois do preloader) ----------
+ * Antes de data-revealed só a pílula aparece: é nela que o preloader fecha.
+ * As palavras sobem linha a linha; meta, intro e rodapé chegam em fade.
+ * `translate` (e não transform) pra não brigar com o deslocamento do scroll nas linhas.
+ */
+.heavy,
+.word {
+  display: inline-block;
+  transition:
+    translate 0.9s var(--ease),
+    opacity 0.6s var(--ease);
+}
+
+.meta,
+.introRow,
+.footer {
+  transition:
+    opacity 0.8s var(--ease) 0.45s,
+    translate 0.8s var(--ease) 0.45s;
+}
+
+.sticky:not([data-revealed]) :is(.heavy, .word) {
+  opacity: 0;
+  translate: 0 0.35em;
+}
+
+.sticky:not([data-revealed]) :is(.meta, .introRow, .footer) {
+  opacity: 0;
+  translate: 0 0.75rem;
+}
+
+.line:nth-child(2) :is(.heavy, .word) {
+  transition-delay: 0.08s;
+}
+
+.line:nth-child(3) :is(.heavy, .word) {
+  transition-delay: 0.16s;
+}

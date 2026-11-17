@@ -1,0 +1,60 @@
+/*
+ * Variáveis vindas do sticky da hero (Hero.module.css / Hero.tsx):
+ *   --p              progresso do scroll (0 → 1)
+ *   --x1             deslocamento atual da linha 1 (a pílula anda com ela)
+ *   --e2             expansão da pílula (0 → 1, já com easing)
+ *   --e3             escurecimento (0 → 1)
+ *   --pill-l/r/t/b   insets do retângulo da pílula em repouso (px, relativos ao sticky)
+ *   --pill-h         altura da pílula (px)
+ *   --pill-follow    1 se a pílula está dentro da linha 1, 0 se está solta (mobile)
+ *   --pill-fs        font-size da pílula (pros rótulos em em baterem)
+ */
+.layer {
+  /* "fixed" visualmente: cobre o sticky, que ocupa a viewport inteira enquanto está preso.
+     Absolute (e não fixed) pra camada ir embora junto com a hero quando o pin solta. */
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  visibility: hidden;
+  pointer-events: none;
+
+  --shift: calc(var(--x1, 0px) * var(--pill-follow, 1));
+  --k: calc(1 - var(--e2, 0));
+  --cl: calc((var(--pill-l, 0px) + var(--shift)) * var(--k));
+  --cr: calc((var(--pill-r, 0px) - var(--shift)) * var(--k));
+  --ct: calc(var(--pill-t, 0px) * var(--k));
+  --cb: calc(var(--pill-b, 0px) * var(--k));
+
+  clip-path: inset(
+    var(--ct) var(--cr) var(--cb) var(--cl) round calc(var(--pill-h, 0px) / 2 * var(--k))
+  );
+}
+
+/* A camada assume quando a expansão começa (p > 0.2); a pílula original some */
+[data-expanded] > .layer {
+  visibility: visible;
+}
+
+/* O conteúdo ocupa exatamente o retângulo recortado: o crop de object-fit: cover
+   é idêntico ao da pílula no início, então a troca pílula → camada não pula */
+.media {
+  position: absolute;
+  top: var(--ct);
+  right: var(--cr);
+  bottom: var(--cb);
+  left: var(--cl);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-size: var(--pill-fs, 1rem);
+  /* o 和 cresce da altura da pílula até ~55svh */
+  --kanji-size: calc(
+    var(--pill-h, 0px) * 0.68 * var(--k) + 55svh * var(--e2, 0)
+  );
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: var(--color-inverse-bg);
+  opacity: var(--e3, 0);
+}

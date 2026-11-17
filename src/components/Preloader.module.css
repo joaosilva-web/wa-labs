@@ -1,0 +1,163 @@
+.root {
+  --ease-close: cubic-bezier(0.7, 0, 0.2, 1);
+  --fill: 0;
+
+  position: fixed;
+  inset: 0;
+  z-index: 2000; /* acima do header e do cursor */
+  background: var(--color-inverse-bg);
+  color: var(--color-inverse-text);
+  clip-path: inset(0px 0px 0px 0px round 0px);
+  transition:
+    clip-path 900ms var(--ease-close),
+    opacity 200ms linear;
+}
+
+/* Fecha em formato de pílula (o retângulo vem medido do JS) */
+.root[data-state='closing'],
+.root[data-state='fading'] {
+  clip-path: var(--clip);
+}
+
+/* Crossfade pro conteúdo da pílula da hero, que está logo embaixo */
+.root[data-state='fading'] {
+  opacity: 0;
+}
+
+/* ---------- cantos ---------- */
+.corner {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  line-height: 1.4;
+  transition: opacity 200ms linear;
+}
+
+.dim {
+  opacity: 0.6;
+}
+
+.topLeft {
+  top: var(--space-6);
+  left: var(--space-6);
+}
+
+.topRight {
+  top: var(--space-6);
+  right: var(--space-6);
+  text-align: right;
+}
+
+.bottomLeft {
+  left: var(--space-6);
+  /* acima da barra de progresso */
+  bottom: calc(var(--space-6) + 4px);
+}
+
+/* ---------- logo ---------- */
+.logo {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(40vw, 320px);
+  translate: -50% -50%;
+  transform: translate(var(--logo-x, 0px), var(--logo-y, 0px)) scale(var(--logo-s, 1));
+  transition: transform 900ms var(--ease-close);
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.svg path {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pill {
+  stroke-width: 3;
+}
+
+/* 95–100%: os traços ganham preenchimento suave.
+   Traço aberto (placeholder) "preenche" engrossando; forma fechada recebe fill de verdade. */
+.kanji path {
+  stroke-width: calc(7 + 3 * var(--fill));
+}
+
+.kanji path[data-closed] {
+  fill: var(--color-primary);
+  fill-opacity: var(--fill);
+}
+
+/* ---------- contador ---------- */
+.counter {
+  position: absolute;
+  right: var(--space-6);
+  bottom: calc(var(--space-6) + 4px);
+  display: flex;
+  font-family: var(--font-display);
+  font-size: clamp(4rem, 12vw, 11rem);
+  font-weight: 800;
+  font-variation-settings: 'wght' 800;
+  line-height: 0.85;
+  letter-spacing: -0.02em;
+  transition: opacity 200ms linear;
+}
+
+/* largura fixa por dígito: o número não treme */
+.digit {
+  display: inline-block;
+  width: 0.78em;
+  text-align: center;
+}
+
+/* ---------- barra ---------- */
+.track {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 4px;
+  background: color-mix(in srgb, var(--color-inverse-text) 10%, transparent);
+}
+
+.bar {
+  display: block;
+  height: 100%;
+  background: var(--color-primary);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+/* Fechando: cantos, contador e barra somem rápido; o logo continua */
+.root[data-state] .corner,
+.root[data-state] .counter,
+.root[data-state] .track {
+  opacity: 0;
+}
+
+@media (max-width: 480px) {
+  .topRight {
+    display: none;
+  }
+}
+
+/* Reduced motion: sem pílula, só um fade simples no fim
+   (o global.css zera transições; aqui o fade é intencional e curto) */
+.root[data-mode='reduced'] {
+  transition: opacity 400ms ease !important;
+}
+
+.root[data-mode='reduced'][data-state] {
+  clip-path: none;
+}
