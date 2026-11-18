@@ -15,11 +15,16 @@
 .item {
   display: inline-flex;
   align-items: center;
-  /* gap removido: cada .char é adjacente ao próximo; espaçamento entre ícones/num
-     e o label vem do margin-right nos próprios elementos (ex.: .num nos filhos) */
   height: var(--roll-lh);
   line-height: var(--roll-lh);
   white-space: nowrap;
+}
+
+/* Restaura o espaço entre um elemento-irmão (ex.: span.num) e os chars do label.
+   O .4em aqui está no contexto do .item (font-size cheio), equivalente ao gap
+   original que foi removido para não espaçar letra por letra. */
+.item > :not(.char) + .char {
+  margin-left: 0.4em;
 }
 
 /* Cada letra é um rolo independente */
