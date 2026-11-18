@@ -1,60 +1,75 @@
 import { cloneElement, isValidElement, type ReactNode } from 'react'
 import styles from './RollText.module.css'
 
-/**
- * Percorre `node` recursivamente quebrando strings em spans `.char` com `--i`.
- * Elementos são clonados com os filhos já quebrados, mantendo classes e estilos.
- * O contador é compartilhado por toda a árvore para que o índice seja contínuo.
- */
-function splitLetters(node: ReactNode, counter: { i: number }): ReactNode {
-  if (node === null || node === undefined || typeof node === 'boolean') {
-    return node
-  }
+/** Uma célula de letra: janela de overflow + pilha animável com duas cópias */
+function charCell(ch: string, idx: number): React.ReactElement {
+  return (
+    <span
+      key={idx}
+      className={styles.char}
+      style={{ '--i': idx } as React.CSSProperties}
+    >
+      <span className={styles.stack}>
+        <span>{ch}</span>
+        <span>{ch}</span>
+      </span>
+    </span>
+  )
+}
 
-  if (typeof node === 'string' || typeof node === 'number') {
-    return String(node).split('').map((ch) => {
-      const idx = counter.i++
-      return (
-        <span
-          key={idx}
-          className={styles.char}
-          style={{ '--i': idx } as React.CSSProperties}
-        >
-          {ch === ' ' ? '\u00A0' : ch}
-        </span>
-      )
-    })
+/**
+ * Converte um ReactNode em spans de palavras (inline-block, white-space: nowrap)
+ * separados por espaços de texto (permitindo quebra de linha entre palavras).
+ * Elementos são clonados com seus filhos convertidos em células de letra.
+ */
+function buildSegments(node: ReactNode, counter: { i: number }): ReactNode[] {
+  if (node === null || node === undefined || typeof node === 'boolean') return []
+  if (typeof node === 'number') return buildSegments(String(node), counter)
+
+  if (typeof node === 'string') {
+    const result: ReactNode[] = []
+    const regex = /\S+| +/g
+    let match: RegExpExecArray | null
+    while ((match = regex.exec(node)) !== null) {
+      if (/^\s/.test(match[0])) {
+        result.push(' ')
+      } else {
+        const wordStart = counter.i
+        const cells = [...match[0]].map((ch) => charCell(ch, counter.i++))
+        result.push(
+          <span key={`w${wordStart}`} className={styles.word}>
+            {cells}
+          </span>,
+        )
+      }
+    }
+    return result
   }
 
   if (Array.isArray(node)) {
-    return node.flatMap((child) => {
-      const result = splitLetters(child, counter)
-      return Array.isArray(result) ? result : [result]
-    })
+    return node.flatMap((child) => buildSegments(child, counter))
   }
 
   if (isValidElement(node)) {
     const nodeChildren = (node.props as { children?: ReactNode }).children
-    if (nodeChildren == null) return node
-    const kids = splitLetters(nodeChildren, counter)
-    return cloneElement(node as React.ReactElement, {}, kids)
+    if (nodeChildren == null) return [node]
+    const innerSegs = buildSegments(nodeChildren, counter)
+    return [cloneElement(node as React.ReactElement, {}, ...innerSegs)]
   }
 
-  return node
+  return []
 }
 
 /**
- * Texto que "rola" no hover do link/botão pai: duas cópias empilhadas,
- * cada letra rolando individualmente da esquerda pra direita (efeito caça-níquel).
+ * Texto que "rola" no hover do link/botão pai: cada letra é uma janela independente
+ * com duas cópias empilhadas — no hover, a pilha sobe revelando a cópia inferior.
+ * Palavras inteiras não quebram no meio; o texto pode fluir em múltiplas linhas.
  * Leitores de tela leem o conteúdo original via span oculto.
  */
 export function RollText({ children }: { children: ReactNode }) {
-  const c1 = { i: 0 }
-  const copy1 = splitLetters(children, c1)
-  const total = c1.i
-
-  const c2 = { i: 0 }
-  const copy2 = splitLetters(children, c2)
+  const counter = { i: 0 }
+  const segments = buildSegments(children, counter)
+  const total = counter.i
 
   // Stagger: textos curtos têm efeito bem marcado; textos longos não demoram demais
   const rollStep = total > 0 ? `${Math.min(28, Math.round(320 / total))}ms` : '28ms'
@@ -64,14 +79,8 @@ export function RollText({ children }: { children: ReactNode }) {
       className={styles.roll}
       style={{ '--roll-step': rollStep } as React.CSSProperties}
     >
-      {/* Lido pelos leitores de tela; as cópias com letras são aria-hidden */}
       <span className={styles.srOnly}>{children}</span>
-      <span className={styles.item} aria-hidden="true">
-        {copy1}
-      </span>
-      <span className={styles.item} aria-hidden="true">
-        {copy2}
-      </span>
+      <span aria-hidden="true">{segments}</span>
     </span>
   )
 }
