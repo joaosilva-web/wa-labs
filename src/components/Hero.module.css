@@ -367,9 +367,14 @@
 
 /* ---------- Telas baixas (notebook landscape) ---------- */
 @media (min-width: 861px) and (max-height: 720px) {
-  /* intro mono (canto superior esq.) é redundante com a barra de metadados */
-  .introRow {
+  /* intro mono (canto sup. esq.) é redundante com a barra de metadados;
+     o .introRow continua como âncora do .vertical (posição absoluta) */
+  .intro {
     display: none;
+  }
+
+  .introRow {
+    padding-top: 0;
   }
 
   /* subtítulo menor + max-width maior → cabe em 2 linhas */
