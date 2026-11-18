@@ -4,7 +4,7 @@
  * Numeração única das seções — header, rótulos (00) Manifesto, (01) Serviços…
  * O Manifesto fica fora do nav, por isso é o 00.
  */
-export const sections = { manifesto: 0, servicos: 1, processo: 2, contato: 3 } as const
+export const sections = { manifesto: 0, servicos: 1, processo: 2, sobre: 3, duvidas: 4, contato: 5 } as const
 export type SectionId = keyof typeof sections
 
 /** Número da seção com dois dígitos: 1 → "01". */
@@ -13,6 +13,8 @@ export const sectionNumber = (id: SectionId) => String(sections[id]).padStart(2,
 export const nav = [
   { label: 'Serviços', href: '#servicos', section: 'servicos' },
   { label: 'Processo', href: '#processo', section: 'processo' },
+  { label: 'Sobre', href: '#sobre', section: 'sobre' },
+  { label: 'Dúvidas', href: '#duvidas', section: 'duvidas' },
   { label: 'Contato', href: '#contato', section: 'contato' },
 ] as const
 
@@ -224,9 +226,140 @@ export const process = [
   },
 ]
 
+/* ---------------------------------------------------------------
+ * Sobre
+ * ------------------------------------------------------------- */
+
+export const about = {
+  label: 'Sobre',
+  aside: 'Maringá, PR',
+  title: [
+    { text: 'Feito por quem', weight: 'light' as const },
+    { text: 'entende o problema.', weight: 'heavy' as const },
+  ],
+  paragraphs: [
+    'Sou João Gustavo, desenvolvedor full-stack e designer baseado em Maringá. ' +
+    'Trabalho com software há mais de cinco anos — de sites institucionais a sistemas críticos de produção.',
+    'A Wa Labs nasceu da frustração com projetos que começam cheios de promessas e terminam em retrabalho. ' +
+    'Aqui cada linha de código tem um porquê, e nenhuma etapa é pulada.',
+  ],
+  facts: [
+    { label: 'Desde', value: '2019' },
+    { label: 'Projetos', value: '30+' },
+    { label: 'Localização', value: 'Maringá — PR' },
+  ],
+  photo: {
+    src: '/images/joao-gustavo.jpg', // TODO: adicionar foto real
+    alt: 'João Gustavo — Wa Labs',
+    width: 1200,
+    height: 1500,
+  },
+  why: {
+    kanji: '和',
+    kanjiReading: 'WA · HARMONIA',
+    title: 'Por que Wa?',
+    text:
+      '和 (wa) é um conceito japonês que vai além de "harmonia" — é a ideia de que as partes ' +
+      'trabalham juntas sem perder a identidade de cada uma. É assim que enxergo a relação ' +
+      'entre design e código, entre produto e negócio, entre estúdio e cliente.',
+  },
+}
+
+/* ---------------------------------------------------------------
+ * Dúvidas (FAQ)
+ * ------------------------------------------------------------- */
+
+export type FaqItem = { q: string; a: string }
+
+export const faq = {
+  label: 'Dúvidas',
+  aside: 'Perguntas frequentes',
+  title: [
+    { text: 'Antes de', weight: 'light' as const },
+    { text: 'começar.', weight: 'heavy' as const },
+  ] satisfies TitleText[],
+  footer: { text: 'Ficou alguma dúvida?', cta: 'Fale comigo ↓', href: '#contato' },
+  items: [
+    {
+      q: 'Quanto tempo leva um projeto?',
+      a:
+        // TODO: revisar prazos reais
+        'Depende do escopo. Um site institucional bem definido fica pronto em 3–4 semanas. ' +
+        'Um sistema web com autenticação e painel admin leva de 6 a 12 semanas. ' +
+        'Na proposta você recebe um cronograma detalhado antes de assinar qualquer contrato.',
+    },
+    {
+      q: 'Vocês atendem só Maringá ou trabalham à distância?',
+      a:
+        'Atendo todo o Brasil — e também clientes no exterior. ' +
+        'Toda a comunicação é remota por padrão: videochamada, e-mail e WhatsApp. ' +
+        'Presencial em Maringá é possível quando faz sentido.',
+    },
+    {
+      q: 'Qual é o processo de pagamento?',
+      a:
+        // TODO: confirmar modelo de pagamento
+        'O modelo padrão é: 50% na aprovação da proposta, 50% na entrega final. ' +
+        'Para projetos maiores podemos dividir em marcos mensais. ' +
+        'Aceito PIX, transferência bancária e boleto.',
+    },
+    {
+      q: 'Posso pedir alterações depois da entrega?',
+      a:
+        'Sim. Todo projeto inclui um período de ajustes de 30 dias após o go-live sem custo adicional. ' +
+        'Depois disso ofereço planos de suporte mensal ou orçamentos pontuais conforme a necessidade.',
+    },
+    {
+      q: 'Preciso fornecer o design ou vocês criam tudo?',
+      a:
+        'Pode ser os dois. Se você já tem um design aprovado eu implemento com fidelidade total. ' +
+        'Se ainda não tem, o processo começa pela etapa de design — wireframes, identidade visual e protótipo — ' +
+        'tudo entregue antes de uma linha de código.',
+    },
+    {
+      q: 'O site vai ficar bem no celular?',
+      a:
+        'Sim, sempre. Responsividade não é opcional — cada projeto é desenvolvido mobile-first ' +
+        'e testado em dispositivos reais, não só em emuladores.',
+    },
+    {
+      q: 'Posso editar o site sozinho depois de pronto?',
+      a:
+        // TODO: definir CMS preferido (Sanity, Contentful, Tina, etc.)
+        'Quando o projeto inclui conteúdo dinâmico integramos um CMS visual ' +
+        'para que você edite textos, imagens e páginas sem tocar em código. ' +
+        'Se o site for estático a edição é feita via repositório Git — com documentação clara.',
+    },
+    {
+      q: 'O que acontece se eu não gostar do resultado?',
+      a:
+        'O processo foi desenhado exatamente pra evitar isso. ' +
+        'Você acompanha cada entrega, aprova wireframes antes do código e recebe demos funcionais em cada marco. ' +
+        'Surpresa negativa no final é sinal de processo ruim — e aqui o processo é a prioridade.',
+    },
+  ] satisfies FaqItem[],
+}
+
+const _whatsapp = 'https://wa.me/5545999505463'
+const _email = 'contato@walabs.dev' // TODO: trocar pelo e-mail real
+
 export const contact = {
-  title: 'Vamos construir algo juntos?',
-  subtitle: 'Conte sua ideia e respondemos em até 1 dia útil.',
-  email: 'contato@walabs.dev', // TODO: trocar pelo e-mail real
-  whatsapp: 'https://wa.me/5545999505463',
+  label: 'Contato',
+  aside: 'Resposta em até 1 dia útil',
+  title: [
+    { text: 'Vamos construir', weight: 'light' as const },
+    { text: 'algo juntos?', weight: 'heavy' as const },
+  ],
+  lead: 'Conte o que você precisa. A gente responde com perguntas certas, não com proposta genérica.',
+  channels: [
+    { label: 'WhatsApp', value: '(45) 99950-5463', href: _whatsapp },
+    { label: 'E-mail', value: _email, href: `mailto:${_email}`, copy: true as const },
+    { label: 'GitHub', value: '@joaosilva-web', href: 'https://github.com/joaosilva-web' },
+    // Instagram / LinkedIn: deixar comentado como exemplo; canal sem href não renderiza
+    // { label: 'Instagram', value: '@walabs' },
+  ],
+  projectTypes: ['Site', 'Sistema web', 'App mobile', 'Outro'],
+  budgets: ['Até R$ 2 mil', 'R$ 2–5 mil', 'R$ 5–10 mil', 'Acima de R$ 10 mil', 'Ainda não sei'], // TODO: revisar faixas
+  email: _email,
+  whatsapp: _whatsapp,
 }

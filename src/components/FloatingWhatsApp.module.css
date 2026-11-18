@@ -1,0 +1,219 @@
+/*
+ * Botão flutuante de WhatsApp em Liquid Glass.
+ *
+ * Fade: nunca com opacity no .wrapper nem no .fab (LiquidGlass).
+ * Scale no .wrapper é seguro. As camadas internas (.fab > :not(svg)) fazem opacity.
+ *
+ * data-tone no .wrapper (escrito pelo useToneObserver): light | dark | primary.
+ * As CSS vars de material (--lg-tint, --lg-rim etc.) são definidas por tom aqui,
+ * igual ao Header.module.css.
+ */
+
+/* ---------- variáveis por tom ---------- */
+.wrapper {
+  /* tom padrão: light */
+  --lg-blur: 0.6px;
+  --lg-saturate: 1.1;
+  --lg-brightness: 1;
+  --lg-tint: rgb(255 255 255 / 0.25);
+  --lg-tint-highlight: rgb(255 255 255 / 0.08);
+  /* borda escura (fundo claro) */
+  --lg-rim-outline: rgb(0 0 0 / 0.07);
+  --lg-rim-top:     rgb(255 255 255 / 0.9);
+  --lg-rim-base:    rgb(0 0 0 / 0.10);
+  --lg-rim-inner:   transparent;
+  --lg-shine: 0.4;
+  --fg: var(--color-text);
+  --dot-border: var(--color-bg);
+  --fab-shadow: 0 8px 24px -8px rgb(0 0 0 / 0.18);
+}
+
+.wrapper[data-tone='dark'] {
+  --lg-blur: 3px;
+  --lg-tint: color-mix(in srgb, var(--color-inverse-bg) 45%, transparent);
+  --lg-tint-highlight: rgb(255 255 255 / 0);
+  /* borda de luz branca (fundo escuro) */
+  --lg-rim-outline: rgb(255 255 255 / 0.11);
+  --lg-rim-top:     rgb(255 255 255 / 0.45);
+  --lg-rim-base:    transparent;
+  --lg-rim-inner:   transparent;
+  --lg-shine: 0.5;
+  --fg: var(--color-inverse-text);
+  --dot-border: var(--color-inverse-bg);
+  --fab-shadow: 0 8px 24px -8px rgb(0 0 0 / 0.30);
+}
+
+.wrapper[data-tone='primary'] {
+  --lg-blur: 1px;
+  --lg-tint: rgb(255 255 255 / 0.08);
+  --lg-tint-highlight: rgb(255 255 255 / 0);
+  /* borda de luz branca (fundo verde) */
+  --lg-rim-outline: rgb(255 255 255 / 0.18);
+  --lg-rim-top:     rgb(255 255 255 / 0.75);
+  --lg-rim-base:    transparent;
+  --lg-rim-inner:   transparent;
+  --fg: var(--color-on-primary);
+  --dot-border: var(--color-primary);
+  --fab-shadow: 0 8px 24px -8px rgb(0 0 0 / 0.25);
+}
+
+/* ---------- wrapper (posição, scale, visibilidade) ---------- */
+.wrapper {
+  /* Fade: scale é seguro; opacity aqui criaria backdrop root no Chromium */
+  position: fixed;
+  bottom: max(24px, env(safe-area-inset-bottom, 0px) + 16px);
+  right: 24px;
+  z-index: 9; /* abaixo do header (z-index: 10) */
+  pointer-events: none;
+  scale: 0.6;
+  /* visibility espera o fade das camadas internas (0.3s) antes de sumir */
+  visibility: hidden;
+  transition:
+    scale 0.2s var(--ease),
+    visibility 0s linear 0.3s,
+    --lg-blur          0.45s var(--ease),
+    --lg-saturate      0.45s var(--ease),
+    --lg-brightness    0.45s var(--ease),
+    --lg-tint          0.45s var(--ease),
+    --lg-tint-highlight 0.45s var(--ease),
+    --lg-shine         0.45s var(--ease),
+    --lg-rim-outline   0.45s var(--ease),
+    --lg-rim-top       0.45s var(--ease),
+    --lg-rim-base      0.45s var(--ease),
+    --lg-rim-inner     0.45s var(--ease);
+}
+
+.wrapper[data-shown] {
+  pointer-events: auto;
+  visibility: visible;
+  /* visibilidade imediata ao aparecer; scale fica pro spring */
+  transition:
+    scale 0.2s var(--ease),
+    visibility 0s linear 0s,
+    --lg-blur          0.45s var(--ease),
+    --lg-saturate      0.45s var(--ease),
+    --lg-brightness    0.45s var(--ease),
+    --lg-tint          0.45s var(--ease),
+    --lg-tint-highlight 0.45s var(--ease),
+    --lg-shine         0.45s var(--ease),
+    --lg-rim-outline   0.45s var(--ease),
+    --lg-rim-top       0.45s var(--ease),
+    --lg-rim-base      0.45s var(--ease),
+    --lg-rim-inner     0.45s var(--ease);
+  animation: fab-spring-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes fab-spring-in {
+  from { scale: 0.6; }
+  to { scale: 1; }
+}
+
+@media (max-width: 760px) {
+  .wrapper {
+    right: 16px;
+  }
+}
+
+/* sem animação de mola no reduced motion (global.css já zera transitions/animations) */
+
+/* ---------- camadas do LiquidGlass: fade controlado aqui ---------- */
+/* regra: nunca opacity no .wrapper nem no .fab; as camadas internas podem */
+.fab > :not(svg) {
+  opacity: 0;
+  transition: opacity 0.3s var(--ease);
+}
+
+.wrapper[data-shown] .fab > :not(svg) {
+  opacity: 1;
+}
+
+/* ---------- cápsula ---------- */
+.fab {
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  box-shadow: var(--fab-shadow);
+  transition:
+    width 0.3s var(--ease),
+    box-shadow 0.3s var(--ease),
+    color 0.45s var(--ease);
+  color: var(--fg);
+  overflow: hidden; /* clip do label na animação de expansão */
+}
+
+/* quando escondido, remove o box-shadow pra não aparecer como fantasma */
+.wrapper:not([data-shown]) .fab {
+  box-shadow: none;
+}
+
+.wrapper[data-expanded] .fab {
+  width: 192px;
+}
+
+/* ---------- link e conteúdo ---------- */
+.link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  width: 100%;
+  height: 100%;
+  color: inherit;
+  z-index: 1; /* acima das camadas glass */
+  /* sem outline padrão: foco visível via focus-visible abaixo */
+  outline: none;
+}
+
+.link:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: 999px;
+}
+
+.icon {
+  flex: none;
+  width: 22px;
+  height: 22px;
+}
+
+.label {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 0;
+  opacity: 0;
+  transition:
+    max-width 0.3s var(--ease),
+    opacity 0.2s var(--ease);
+}
+
+.wrapper[data-expanded] .label {
+  max-width: 130px;
+  opacity: 1;
+}
+
+/* ---------- indicador "online" ---------- */
+/* os brancos daqui são cor de MATERIAL, não de interface */
+/* fica fora do LiquidGlass (.fab tem overflow: hidden) → filho direto do .wrapper */
+.dot {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--dot-border);
+  pointer-events: none;
+  z-index: 2;
+  /* fade junto com o botão: opacity na bolinha é seguro (não é ancestral do vidro) */
+  opacity: 0;
+  transition: box-shadow 0.3s var(--ease), opacity 0.3s var(--ease);
+}
+
+.wrapper[data-shown] .dot {
+  opacity: 1;
+}

@@ -1,4 +1,34 @@
+@import './fonts.css';
 @import './tokens.css';
+
+/* ---------- custom properties registradas para transição ----------------------
+ * @property permite ao navegador interpolar variáveis CSS como valores tipados.
+ * Sem registro, toda var() é uma string opaca e não transiciona.
+ * inherits: true → valores definidos no .header / .wrapper cascateiam para
+ * os descendentes (LiquidGlass > .tint, .glass, etc.) automaticamente.
+ * --------------------------------------------------------------------------- */
+
+/* LiquidGlass — filtro */
+@property --lg-blur        { syntax: '<length>'; inherits: true; initial-value: 1.5px; }
+@property --lg-saturate    { syntax: '<number>'; inherits: true; initial-value: 1.25; }
+@property --lg-brightness  { syntax: '<number>'; inherits: true; initial-value: 1.03; }
+@property --lg-shine       { syntax: '<number>'; inherits: true; initial-value: 1; }
+
+/* LiquidGlass — tint */
+@property --lg-tint           { syntax: '<color>'; inherits: true; initial-value: rgb(255 255 255 / 0.06); }
+@property --lg-tint-highlight { syntax: '<color>'; inherits: true; initial-value: rgb(255 255 255 / 0); }
+
+/* LiquidGlass — borda com estrutura fixa de 4 camadas; só as cores variam por tom.
+ * Initial values = antigo padrão sem --lg-rim (borda de luz, --lg-edge: 1). */
+@property --lg-rim-outline { syntax: '<color>'; inherits: true; initial-value: rgb(255 255 255 / 0.18); }
+@property --lg-rim-top     { syntax: '<color>'; inherits: true; initial-value: rgb(255 255 255 / 0.75); }
+@property --lg-rim-base    { syntax: '<color>'; inherits: true; initial-value: transparent; }
+@property --lg-rim-inner   { syntax: '<color>'; inherits: true; initial-value: transparent; }
+
+/* Header — cores de primeiro plano */
+@property --hdr-fg    { syntax: '<color>'; inherits: true; initial-value: #333333; }
+@property --hdr-muted { syntax: '<color>'; inherits: true; initial-value: #727171; }
+@property --hdr-hover { syntax: '<color>'; inherits: true; initial-value: #aacf53; }
 
 *,
 *::before,

@@ -37,7 +37,7 @@ export function Services() {
   }, [reduced])
 
   return (
-    <section id="servicos" className={styles.services}>
+    <section id="servicos" className={styles.services} data-tone="dark">
       <div className={`container-wide ${styles.inner}`}>
         <SectionMeta
           index={sections.servicos}

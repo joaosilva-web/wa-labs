@@ -1,4 +1,7 @@
+import { About } from './components/About'
 import { Contact } from './components/Contact'
+import { Faq } from './components/Faq'
+import { FloatingWhatsApp } from './components/FloatingWhatsApp'
 import { Cursor } from './components/Cursor'
 import { Footer } from './components/Footer'
 import { Header } from './components/Header'
@@ -20,10 +23,13 @@ function Site() {
         <Manifesto />
         <Services />
         <Process />
+        <About />
+        <Faq />
         <Contact />
       </main>
       <Footer />
       <Cursor />
+      <FloatingWhatsApp />
       {!isDone && <Preloader />}
     </>
   )

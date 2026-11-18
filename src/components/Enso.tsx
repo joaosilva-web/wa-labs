@@ -1,26 +1,42 @@
-import { memo, useEffect, useRef } from 'react'
-import { BRUSH_WIDTH, ENSO_SPINE, ENSO_STRANDS, SIZE } from '../assets/ensoBrush'
+import { memo, type ReactNode, useEffect, useRef, useState } from 'react'
+import { BRUSH_WIDTH, ENSO_SPINE, SIZE, getEnsoStrands } from '../assets/ensoBrush'
 import styles from './Enso.module.css'
 
 /*
  * Ensō (円相) — o círculo zen de uma pincelada só, propositalmente aberto.
  * O traço vem de src/assets/ensoBrush.ts: centenas de "cerdas" (paths finos)
  * revelados por uma <mask> com a linha central animada por stroke-dashoffset ← var(--enso).
+ *
+ * As cerdas são geradas uma só vez em requestIdleCallback (ou setTimeout como fallback)
+ * para não bloquear o thread principal durante o carregamento da página.
+ * Após montados, o React nunca reconcilia os paths novamente — o scroll só muda
+ * CSS variables via useViewProgress.
  */
-
-// ~1300 paths estáticos: montados uma vez só, fora do ciclo de render.
-// O scroll só muda CSS variables — o React nunca reconcilia isto de novo.
-const STRANDS = (
-  <g className={styles.strands}>
-    {ENSO_STRANDS.map(({ d, width, opacity }, i) => (
-      <path key={i} d={d} strokeWidth={width} opacity={opacity} />
-    ))}
-  </g>
-)
 
 export const Enso = memo(function Enso({ className = '' }: { className?: string }) {
   const svgRef = useRef<SVGSVGElement>(null)
   const spineRef = useRef<SVGPathElement>(null)
+  const [strands, setStrands] = useState<ReactNode>(null)
+
+  // Gera os ~1 300 paths em idle para não bloquear o carregamento inicial.
+  // Uma vez montados, o estado nunca muda — o React não reconcilia no scroll.
+  useEffect(() => {
+    const run = () => {
+      setStrands(
+        <g className={styles.strands}>
+          {getEnsoStrands().map(({ d, width, opacity }, i) => (
+            <path key={i} d={d} strokeWidth={width} opacity={opacity} />
+          ))}
+        </g>,
+      )
+    }
+    if (typeof requestIdleCallback !== 'undefined') {
+      const id = requestIdleCallback(run)
+      return () => cancelIdleCallback(id)
+    }
+    const id = setTimeout(run, 1)
+    return () => clearTimeout(id)
+  }, [])
 
   useEffect(() => {
     const svg = svgRef.current
@@ -51,7 +67,7 @@ export const Enso = memo(function Enso({ className = '' }: { className?: string 
         </mask>
       </defs>
 
-      <g mask="url(#enso-reveal)">{STRANDS}</g>
+      <g mask="url(#enso-reveal)">{strands}</g>
     </svg>
   )
 })

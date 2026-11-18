@@ -1,0 +1,79 @@
+/*
+ * Vidro líquido. O backdrop-filter vem inline do TSX com CSS vars como defaults
+ * (ver JSDoc do componente para a lista completa de vars ajustáveis pelo pai).
+ * O reflexo inclina com --angle / --sx se o pai escrever esses valores (a pílula dos serviços).
+ *
+ * As variáveis --lg-* estão registradas com @property em global.css: o navegador
+ * pode interpolá-las com transition quando definidas num ancestral (ex.: .header).
+ */
+:where(.root) {
+  /* as camadas são absolutas e se apoiam aqui; o pai pode trocar por fixed/absolute.
+     O conteúdo em fluxo (children) precisa de position: relative pra ficar por cima. */
+  position: relative;
+}
+
+.defs {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.glass,
+.tint,
+.shine {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* ---------- vidro ---------- */
+.glass {
+  /* backdrop-filter vem inline; a transição suaviza trocas de --lg-blur etc. */
+  transition:
+    backdrop-filter 0.3s var(--ease),
+    -webkit-backdrop-filter 0.3s var(--ease);
+}
+
+/* ---------- tint + borda ---------- */
+/* os brancos aqui e no .shine são cor de MATERIAL, não cor de interface */
+.tint {
+  background: var(--lg-tint, rgb(255 255 255 / 0.06));
+  /* gradiente de topo: --lg-tint-highlight é <color> registrada — anima sem estalo */
+  background-image: linear-gradient(to bottom, var(--lg-tint-highlight), transparent);
+  /*
+   * Borda em 4 camadas com estrutura fixa; só as cores variam por tom.
+   * As variáveis são <color> registradas (@property em global.css): o navegador
+   * interpola camada por camada quando o ancestral (ex.: .header) as transiciona.
+   * Valores iniciais das props reproduzem o antigo padrão de borda de luz branca.
+   */
+  box-shadow:
+    inset 0 0 0 1px var(--lg-rim-outline),
+    inset 0 1px 1px var(--lg-rim-top),
+    inset 0 -8px 14px -10px var(--lg-rim-base),
+    inset 0 6px 12px -10px var(--lg-rim-inner);
+  /* anima background-color para componentes sem transition no ancestral */
+  transition: background-color 0.3s var(--ease);
+}
+
+/* ---------- reflexo especular ---------- */
+.shine {
+  overflow: hidden;
+}
+
+/* arco na metade de cima; inclina pro lado do movimento (--angle / --sx da pílula dos serviços) */
+.shine::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 9%;
+  right: 9%;
+  height: 50%;
+  border-radius: 50% 50% 50% 50% / 100% 100% 30% 30%;
+  background: linear-gradient(to bottom, rgb(255 255 255 / 0.45), rgb(255 255 255 / 0));
+  opacity: var(--lg-shine, 1);
+  transform-origin: 50% 100%;
+  rotate: calc(cos(var(--angle, 0deg)) * (var(--sx, 1) - 1) * -100deg);
+  transition: opacity 0.3s var(--ease);
+}

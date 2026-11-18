@@ -3,26 +3,58 @@
   /* respiro entre as cópias: acentos e cedilhas não aparecem na borda da janela */
   --roll-gap: 0.4em;
 
-  position: relative;
-  display: inline-flex;
-  flex-direction: column;
-  row-gap: var(--roll-gap);
+  position: relative; /* âncora o srOnly (position: absolute) */
+}
+
+/* Palavra inteira como unidade: não quebra no meio */
+.word {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+/* Janela de uma linha para cada letra */
+.char {
+  display: inline-block;
   height: var(--roll-lh);
+  line-height: var(--roll-lh);
   overflow: hidden;
   vertical-align: top;
 }
 
-.item {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4em;
+/* Pilha com duas cópias da letra; sobe no hover */
+.stack {
+  display: flex;
+  flex-direction: column;
+  row-gap: var(--roll-gap);
+  transition: transform 0.45s cubic-bezier(0.34, 1.3, 0.64, 1);
+  transition-delay: calc(var(--i, 0) * var(--roll-step, 20ms));
+}
+
+/* Cada cópia ocupa exatamente uma linha */
+.stack > span {
+  display: block;
   height: var(--roll-lh);
   line-height: var(--roll-lh);
-  white-space: nowrap;
-  transition: transform 0.35s cubic-bezier(0.7, 0, 0.2, 1);
 }
 
 /* Dispara no hover (ou foco por teclado) do link/botão que contém o texto */
-:is(a, button, [data-roll]):is(:hover, :focus-visible) .item {
-  transform: translateY(calc(-100% - var(--roll-gap)));
+:is(a, button, [data-roll]):is(:hover, :focus-visible) .stack {
+  transform: translateY(calc(-1 * (var(--roll-lh) + var(--roll-gap))));
+  will-change: transform;
+}
+
+/* Elemento não-.word imediatamente antes de um .word (ex.: span.num do footer):
+   restaura o espaço equivalente ao da regra anterior (.item > :not(.char) + .char).
+   O .4em está no contexto de fonte cheia — igual ao espaçamento original. */
+:not(.word) + .word {
+  margin-left: 0.4em;
+}
+
+/* Visualmente oculto, semanticamente presente para leitores de tela */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
 }

@@ -1,0 +1,322 @@
+/*
+ * Seção Dúvidas (FAQ) — tom claro.
+ * --faq: 0 → 1 enquanto a lista percorre o viewport (via useViewProgress na listCol).
+ *   · peso do título cresce: começar. vai de 300 → 900
+ *   · barra de progresso se preenche de cima pra baixo
+ */
+
+.faq {
+  --muted: var(--color-text-muted);
+  --line: color-mix(in srgb, var(--color-text) 12%, transparent);
+
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.inner {
+  padding-block: var(--space-8) var(--space-24);
+}
+
+/* ---------- layout 2 colunas ---------- */
+.body {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-12);
+  margin-block: var(--space-16) 0;
+}
+
+@media (min-width: 861px) {
+  .body {
+    grid-template-columns: 1fr 2fr;
+    align-items: start;
+    gap: var(--space-16);
+  }
+}
+
+/* ---------- reveal inicial do body ---------- */
+.body > * {
+  opacity: 0;
+  translate: 0 24px;
+  transition:
+    opacity 0.6s var(--ease) calc(var(--i, 0) * 60ms),
+    translate 0.6s var(--ease) calc(var(--i, 0) * 60ms);
+}
+
+.body[data-revealed] > * {
+  opacity: 1;
+  translate: 0 0;
+}
+
+/* ---------- coluna do título (sticky na desktop) ---------- */
+.titleCol {
+  position: sticky;
+  top: calc(80px + var(--space-6));
+  align-self: start;
+}
+
+@media (max-width: 860px) {
+  .titleCol {
+    position: static;
+  }
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: clamp(2.25rem, 1rem + 4vw, 5rem);
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: var(--color-text);
+}
+
+.light,
+.heavy {
+  display: block;
+}
+
+.light {
+  font-weight: 200;
+}
+
+/* "começar." engorda de 300 → 900 conforme a lista avança */
+.heavy {
+  font-weight: 300;
+  font-variation-settings: 'wght' clamp(300, calc(300 + 600 * var(--faq, 0)), 900);
+}
+
+/* ---------- lista de perguntas ---------- */
+.listCol {
+  position: relative;  /* âncora a barra de progresso */
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- barra de progresso vertical ---------- */
+.progressBar {
+  position: absolute;
+  left: calc(-1 * var(--space-6));
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--line);
+}
+
+.progressBar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--color-primary);
+  transform-origin: top;
+  transform: scaleY(var(--faq, 0));
+}
+
+@media (max-width: 860px) {
+  .progressBar {
+    display: none;
+  }
+}
+
+/* ---------- item (details) — entrada por IO ---------- */
+.item {
+  interpolate-size: allow-keywords; /* Chrome 131+: anima height auto */
+}
+
+/* Borda superior: se desenha da esquerda pra direita ao revelar */
+.item::before {
+  content: '';
+  display: block;
+  height: 1px;
+  background: var(--line);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.5s var(--ease);
+}
+
+.item[data-revealed]::before {
+  transform: scaleX(1);
+}
+
+/* Borda inferior no último item (também animada pelo último before) */
+.item:last-of-type::after {
+  content: '';
+  display: block;
+  height: 1px;
+  background: var(--line);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.5s var(--ease) 0.1s;
+}
+
+.item:last-of-type[data-revealed]::after {
+  transform: scaleX(1);
+}
+
+/* Remove o marcador padrão */
+.item summary::-webkit-details-marker {
+  display: none;
+}
+
+/* ---------- summary ---------- */
+.summary {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+  padding-block: var(--space-6);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  -webkit-user-select: none;
+  outline: none;
+
+  /* Texto sobe com fade logo depois da borda */
+  opacity: 0;
+  translate: 0 10px;
+  transition:
+    opacity 0.4s var(--ease) 0.2s,
+    translate 0.4s var(--ease) 0.2s;
+}
+
+.item[data-revealed] .summary {
+  opacity: 1;
+  translate: 0 0;
+}
+
+.summary:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 3px;
+  border-radius: var(--radius-sm);
+}
+
+/* 問: vira --color-primary no hover; margin-top alinha com a primeira linha da pergunta */
+.questionKanji {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--muted);
+  flex: none;
+  width: 1.5rem;
+  text-align: center;
+  margin-top: 0.15em;
+  transition: color 0.2s var(--ease);
+}
+
+.summary:hover .questionKanji,
+.summary:focus-visible .questionKanji {
+  color: var(--color-primary);
+}
+
+/* Pergunta: pode quebrar linha; min-width: 0 permite encolher no flex */
+.question {
+  font-family: var(--font-display);
+  font-size: var(--text-lg);
+  font-weight: 500;
+  color: var(--color-text);
+  flex: 1;
+  min-width: 0;
+  translate: 0 0;
+  transition: translate 0.3s var(--ease);
+}
+
+/* Deslize de 8px só em dispositivos com hover real (evita "preso" após toque) */
+@media (hover: hover) {
+  .summary:hover .question {
+    translate: 8px 0;
+  }
+}
+
+.summary:focus-visible .question {
+  translate: 8px 0;
+}
+
+.toggle {
+  flex: none;
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 300;
+  color: var(--color-primary);
+  line-height: 1;
+  transition: rotate 0.3s var(--ease);
+}
+
+.item[open] .toggle {
+  rotate: 45deg;
+}
+
+/* ---------- conteúdo animado do details ---------- */
+.item::details-content {
+  overflow: hidden;
+  transition: height 0.35s var(--ease), content-visibility 0.35s allow-discrete;
+}
+
+/* ---------- resposta ---------- */
+.answer {
+  display: flex;
+  gap: var(--space-4);
+  align-items: flex-start;
+  padding-bottom: var(--space-6);
+}
+
+/* 答: entra com scale 0.6 → 1 e fade ao abrir */
+.answerKanji {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--color-primary);
+  flex: none;
+  width: 1.5rem;
+  text-align: center;
+  margin-top: 0.25em;
+  opacity: 0;
+  scale: 0.6;
+  transition:
+    opacity 0.3s var(--ease),
+    scale 0.3s var(--ease);
+}
+
+.item[open] .answerKanji {
+  opacity: 1;
+  scale: 1;
+}
+
+/* Texto da resposta: revelado de cima pra baixo em ~400ms */
+.answerText {
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: 1.7;
+  color: var(--muted);
+  max-width: 56ch;
+  clip-path: inset(0 0 100% 0);
+  transition: clip-path 0.4s var(--ease);
+}
+
+.item[open] .answerText {
+  clip-path: inset(0 0 0% 0);
+}
+
+/* ---------- rodapé da lista ---------- */
+.footer {
+  padding-top: var(--space-12);
+  font-family: var(--font-body);
+  font-size: var(--text-lg);
+  color: var(--muted);
+
+  opacity: 0;
+  translate: 0 16px;
+  transition:
+    opacity 0.6s var(--ease) calc(var(--i, 0) * 60ms),
+    translate 0.6s var(--ease) calc(var(--i, 0) * 60ms);
+}
+
+.body[data-revealed] .footer {
+  opacity: 1;
+  translate: 0 0;
+}
+
+.footerLink {
+  display: inline-flex;
+  color: var(--color-text);
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.2s var(--ease);
+}
+
+.footerLink:hover {
+  color: var(--color-primary);
+}

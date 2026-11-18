@@ -1,34 +1,354 @@
-.box {
-  padding: clamp(var(--space-8), 6vw, var(--space-24));
-  border-radius: var(--radius-lg);
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-  text-align: center;
+/*
+ * Seção Contato — fundo escuro (--color-inverse-bg), texto inverso.
+ * Remove a caixa verde antiga; título Unbounded, dois-colunas no desktop.
+ */
+
+.section {
+  background: var(--color-inverse-bg);
+  color: var(--color-inverse-text);
+  padding-block: var(--space-24);
+  /* variável semântica local */
+  --muted: color-mix(in srgb, var(--color-inverse-text) 65%, transparent);
+  --line: color-mix(in srgb, var(--color-inverse-text) 15%, transparent);
 }
 
-.title {
-  font-size: var(--text-2xl);
-  max-width: 18ch;
-  margin-inline: auto;
-}
-
-.subtitle {
-  margin-top: var(--space-4);
-  font-size: var(--text-lg);
-  opacity: 0.9;
-}
-
-.actions {
+.inner {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: var(--space-12);
+}
+
+/* ---------- Título ---------- */
+.title {
+  font-size: clamp(2.5rem, 1rem + 6vw, 8rem);
+  line-height: 0.95;
+  letter-spacing: -0.04em;
+  font-weight: 200; /* base; heavy span sobrescreve */
+}
+
+.titleLight {
+  font-weight: 200;
+}
+
+.titleHeavy {
+  font-weight: 900;
+}
+
+/* Pílula estática com 和 (visual do HeroPill) */
+.pill {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-6);
-  margin-top: var(--space-8);
+  height: 0.75em;
+  aspect-ratio: 1.5;
+  vertical-align: -0.05em;
+  border-radius: var(--radius-pill);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  margin-inline: 0.1em;
 }
 
-.email {
-  font-weight: 600;
+.pillBody {
+  font-size: 0.42em;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+/* ---------- Body (duas colunas) ---------- */
+.body {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-16) var(--space-12);
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .body {
+    grid-template-columns: 1fr;
+    gap: var(--space-12);
+  }
+}
+
+/* ---------- Reveal (mesmo padrão dos Serviços) ---------- */
+.left > *,
+.form > * {
+  opacity: 0;
+  translate: 0 0.4em;
+  transition:
+    opacity 0.6s var(--ease) calc(var(--i, 0) * 80ms),
+    translate 0.6s var(--ease) calc(var(--i, 0) * 80ms);
+}
+
+.body[data-revealed] .left > *,
+.body[data-revealed] .form > * {
+  opacity: 1;
+  translate: 0 0;
+}
+
+/* reduced motion: aparece direto */
+@media (prefers-reduced-motion: reduce) {
+  .left > *,
+  .form > * {
+    opacity: 1;
+    translate: 0 0;
+    transition: none;
+  }
+}
+
+/* ---------- Coluna esquerda ---------- */
+.lead {
+  max-width: 34ch;
+  font-family: var(--font-body);
+  font-size: var(--text-lg);
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+/* Lista de canais */
+.channels {
+  list-style: none;
+  padding: 0;
+  margin-top: var(--space-8);
+  border-top: 1px solid var(--line);
+}
+
+.channel {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+}
+
+.channelLink {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 7rem 1fr auto;
+  align-items: center;
+  gap: var(--space-4);
+  padding-block: var(--space-5);
+  color: var(--color-inverse-text);
+  transition: color 0.2s var(--ease);
+}
+
+.channelLink:hover {
+  color: var(--color-primary);
+}
+
+.channelLink:hover .channelArrow {
+  rotate: 45deg;
+}
+
+.channelLabel {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.channelValue {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 500;
+  overflow: hidden;
+}
+
+.channelArrow {
+  font-size: var(--text-xl);
+  transition: rotate 0.2s var(--ease);
+}
+
+.copyBtn {
+  flex: none;
+  margin-left: var(--space-4);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transition: border-color 0.2s var(--ease), color 0.2s var(--ease);
+}
+
+.copyBtn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* Relógios */
+.clocks {
+  display: flex;
+  gap: var(--space-8);
+  margin-top: var(--space-8);
+  padding-top: var(--space-6);
+  border-top: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.clockTime {
+  color: var(--color-inverse-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Formulário ---------- */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.fieldLabel {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Input linha editorial: só borda inferior */
+.input {
+  width: 100%;
+  padding: var(--space-3) 0;
+  background: none;
+  border: none;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  color: var(--color-inverse-text);
+  font-family: var(--font-body);
+  font-size: var(--text-lg);
+  font-weight: 400;
+  outline: none;
+  transition: border-color 0.2s var(--ease);
+}
+
+.input::placeholder {
+  color: color-mix(in srgb, var(--color-inverse-text) 30%, transparent);
+}
+
+.input:focus {
+  border-bottom-color: var(--color-primary);
+}
+
+.input[aria-invalid='true'] {
+  border-bottom-color: #e55353;
+}
+
+.textarea {
+  resize: none;
+  overflow: hidden;
+  field-sizing: content; /* suporte moderno */
+  min-height: calc(var(--text-lg) * 1.6 * 4);
+}
+
+.fieldError {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  color: #e55353;
+}
+
+/* Chips */
+.fieldset {
+  border: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.chipInput {
+  /* visualmente escondido, mas acessível */
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.chip {
+  cursor: pointer;
+}
+
+.chipLabel {
+  display: inline-block;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--muted);
+  transition:
+    border-color 0.15s var(--ease),
+    background-color 0.15s var(--ease),
+    color 0.15s var(--ease);
+}
+
+.chip:hover .chipLabel {
+  border-color: var(--color-inverse-text);
+  color: var(--color-inverse-text);
+}
+
+.chipInput:checked + .chipLabel {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.chipInput:focus-visible + .chipLabel {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+/* Linha de envio */
+.submitRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-6);
+  padding-top: var(--space-4);
+}
+
+.mailtoLink {
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  color: var(--muted);
   text-decoration: underline;
-  text-underline-offset: 4px;
+  text-underline-offset: 3px;
+  transition: color 0.2s var(--ease);
+}
+
+.mailtoLink:hover {
+  color: var(--color-inverse-text);
+}
+
+/* Acessibilidade */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }

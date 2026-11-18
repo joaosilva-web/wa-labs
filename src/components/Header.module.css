@@ -1,25 +1,164 @@
+/*
+ * Header em cápsula flutuante de vidro líquido (LiquidGlass).
+ *
+ * - data-tone (light | dark | primary): escrito pelo useHeaderTone conforme a seção embaixo
+ * - data-compact: depois de 80px de scroll a cápsula encolhe (64 → 56px)
+ * - --header-hide (0 → 1): vem da transição de scroll da hero (p 0.6 → 0.75)
+ *
+ * Fade: nunca com opacity no .header nem no .capsule. No Chromium um ancestral com
+ * opacity < 1 vira "backdrop root" e o vidro refrataria o nada; quem some são as camadas.
+ */
 .header {
-  position: sticky;
-  top: 0;
+  /* tom padrão (light): fundo quase branco → vidro transparente com borda escura */
+  --hdr-fg: var(--color-text);
+  --hdr-muted: var(--color-text-muted);
+  --hdr-hover: var(--color-primary);
+
+  /* filtro: pouco blur pra o conteúdo (espiral, texto) aparecer nítido e só o bisel entortar */
+  --lg-blur: 0.4px;
+  --lg-saturate: 1.1;
+  --lg-brightness: 1;
+  --lg-fallback-blur: 10px;
+  --lg-fallback-saturate: 1.2;
+
+  /* material: branco semi-transparente + gradiente vertical leve */
+  --lg-tint: rgb(255 255 255 / 0.25);
+  --lg-tint-highlight: rgb(255 255 255 / 0.08);
+
+  /* borda escura (tom light): contorno + fio de luz + sombra de volume + escurecimento interno */
+  --lg-rim-outline: rgb(0 0 0 / 0.07);
+  --lg-rim-top:     rgb(255 255 255 / 0.9);
+  --lg-rim-base:    rgb(0 0 0 / 0.10);
+  --lg-rim-inner:   rgb(0 0 0 / 0.06);
+
+  --lg-shine: 0.35;
+
+  /* sombra externa da cápsula (por tom; funde com --hdr-fade) */
+  --hdr-shadow: 0 6px 20px -10px rgb(0 0 0 / calc(0.18 * var(--hdr-fade)));
+
+  --hdr-h: 64px;
+  --hdr-pad-start: 12px;
+  --hdr-pad-end: 10px;
+  --hdr-fade: calc(1 - var(--header-hide, 0));
+
+  position: fixed;
+  top: 16px;
+  left: 50%;
   z-index: 10;
-  background: color-mix(in srgb, var(--color-bg) 85%, transparent);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--color-border);
-  /* --header-hide (0 → 1) vem da transição de scroll da hero */
-  opacity: calc(1 - var(--header-hide, 0));
-  transform: translateY(calc(var(--header-hide, 0) * -100%));
+  width: min(100% - 32px, 1200px);
+  color: var(--hdr-fg);
+  transform: translateX(-50%) translateY(calc(var(--header-hide, 0) * (-100% - 24px)));
+  /* Transição unificada: transform da hero + todas as vars de tom (450ms, --ease).
+     As vars são <color>/<number>/<length> registradas → o navegador interpola. */
+  transition:
+    transform 0.25s var(--ease),
+    --hdr-fg           0.45s var(--ease),
+    --hdr-muted        0.45s var(--ease),
+    --hdr-hover        0.45s var(--ease),
+    --lg-blur          0.45s var(--ease),
+    --lg-saturate      0.45s var(--ease),
+    --lg-brightness    0.45s var(--ease),
+    --lg-tint          0.45s var(--ease),
+    --lg-tint-highlight 0.45s var(--ease),
+    --lg-shine         0.45s var(--ease),
+    --lg-rim-outline   0.45s var(--ease),
+    --lg-rim-top       0.45s var(--ease),
+    --lg-rim-base      0.45s var(--ease),
+    --lg-rim-inner     0.45s var(--ease);
+}
+
+.header[data-tone='dark'] {
+  --hdr-fg: var(--color-inverse-text);
+  --hdr-muted: color-mix(in srgb, var(--color-inverse-text) 65%, transparent);
+  --hdr-hover: var(--color-primary);
+  /* mais blur e tint escuro: texto branco gigante passando por baixo ficaria ilegível */
+  --lg-blur: 3px;
+  --lg-tint: color-mix(in srgb, var(--color-inverse-bg) 45%, transparent);
+  --lg-tint-highlight: rgb(255 255 255 / 0);
+  --lg-shine: 0.5;
+  /* borda de luz branca (fundo escuro) */
+  --lg-rim-outline: rgb(255 255 255 / 0.11);
+  --lg-rim-top:     rgb(255 255 255 / 0.45);
+  --lg-rim-base:    transparent;
+  --lg-rim-inner:   transparent;
+  --hdr-shadow: 0 8px 24px -8px rgb(0 0 0 / calc(0.25 * var(--hdr-fade)));
+}
+
+.header[data-tone='primary'] {
+  --hdr-fg: var(--color-on-primary);
+  --hdr-muted: color-mix(in srgb, var(--color-on-primary) 65%, transparent);
+  --hdr-hover: color-mix(in srgb, var(--color-on-primary) 60%, transparent);
+  --lg-blur: 1px;
+  --lg-tint: rgb(255 255 255 / 0.08);
+  --lg-tint-highlight: rgb(255 255 255 / 0);
+  /* borda de luz branca (fundo verde) */
+  --lg-rim-outline: rgb(255 255 255 / 0.18);
+  --lg-rim-top:     rgb(255 255 255 / 0.75);
+  --lg-rim-base:    transparent;
+  --lg-rim-inner:   transparent;
+  --hdr-shadow: 0 8px 24px -8px rgb(0 0 0 / calc(0.25 * var(--hdr-fade)));
+}
+
+.header[data-compact] {
+  --hdr-h: 56px;
+  --hdr-pad-start: 8px;
+  --hdr-pad-end: 8px;
+}
+
+/* ---------- cápsula ---------- */
+.capsule {
+  height: var(--hdr-h);
+  border-radius: 999px;
+  box-shadow: var(--hdr-shadow);
+  transition:
+    height 0.25s var(--ease),
+    box-shadow 0.25s var(--ease);
+}
+
+/* camadas do vidro + conteúdo: é aqui que o fade do --header-hide acontece */
+.capsule > :not(svg),
+.menu > :not(svg) {
+  opacity: var(--hdr-fade);
   transition:
     opacity 0.25s var(--ease),
-    transform 0.25s var(--ease);
+    background-color 0.3s var(--ease),
+    box-shadow 0.3s var(--ease);
 }
 
 .inner {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 72px;
+  gap: var(--space-6);
+  height: 100%;
+  padding-inline: var(--hdr-pad-start) var(--hdr-pad-end);
+  transition: padding 0.25s var(--ease);
 }
 
+.brand {
+  display: inline-flex;
+  transform-origin: left center;
+  transition: scale 0.25s var(--ease);
+}
+
+.header[data-compact] .brand {
+  scale: 0.88;
+}
+
+/* no tom verde o quadradinho do logo vira escuro, senão some */
+.brand :global(a) > :first-child {
+  transition:
+    background-color 0.3s var(--ease),
+    color 0.3s var(--ease);
+}
+
+.header[data-tone='primary'] .brand :global(a) > :first-child {
+  background: var(--color-inverse-bg);
+  color: var(--color-inverse-text);
+}
+
+/* ---------- nav ---------- */
 .nav {
   display: flex;
   align-items: center;
@@ -38,7 +177,11 @@
   font-size: var(--text-sm);
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  transition: color 0.2s var(--ease);
+  transition: color 0.3s var(--ease);
+}
+
+.nav a:not([class]):hover {
+  color: var(--hdr-hover);
 }
 
 .num {
@@ -47,28 +190,50 @@
   font-size: 0.7em;
   font-weight: 400;
   letter-spacing: 0;
-  color: var(--color-text-muted);
+  color: var(--hdr-muted);
   vertical-align: super;
   line-height: 0;
+  transition: color 0.3s var(--ease);
 }
 
-.nav a:not([class]):hover {
-  color: var(--color-primary);
+/* Orçamento: verde em todo tom, menos no verde (aí vira escuro) */
+.cta {
+  transition:
+    transform 0.2s var(--ease),
+    background-color 0.3s var(--ease),
+    color 0.3s var(--ease),
+    padding 0.25s var(--ease);
 }
 
+.header[data-compact] .cta {
+  padding-block: var(--space-2);
+}
+
+.header[data-tone='primary'] .cta {
+  background-color: var(--color-inverse-bg);
+  color: var(--color-inverse-text);
+}
+
+.header[data-tone='primary'] .cta:hover {
+  background-color: var(--color-inverse-text);
+  color: var(--color-text);
+}
+
+/* ---------- menu mobile ---------- */
 .toggle {
-  display: none;
+  display: flex;
   flex-direction: column;
   gap: 6px;
-  padding: var(--space-2);
+  padding: var(--space-3);
   background: none;
   border: 0;
+  color: inherit;
 }
 
 .bar {
   width: 24px;
   height: 2px;
-  background: var(--color-text);
+  background: currentColor;
 }
 
 .srOnly {
@@ -79,31 +244,39 @@
   clip: rect(0 0 0 0);
 }
 
-@media (max-width: 760px) {
-  .toggle {
-    display: flex;
-  }
+.menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: min(100%, 320px);
+  border-radius: 28px;
+  box-shadow: 0 8px 24px -8px rgb(0 0 0 / calc(0.25 * var(--hdr-fade)));
+  transform-origin: top right;
+  animation: menu-in 0.25s var(--ease);
+}
 
-  .nav {
-    position: absolute;
-    top: 72px;
-    left: 0;
-    right: 0;
-    flex-direction: column;
-    align-items: stretch;
-    gap: var(--space-6);
-    padding: var(--space-6);
-    background: var(--color-bg);
-    border-bottom: 1px solid var(--color-border);
-    display: none;
-  }
+.menu[hidden] {
+  display: none;
+}
 
-  .nav.open {
-    display: flex;
+@keyframes menu-in {
+  from {
+    transform: translateY(-8px) scale(0.97);
   }
+}
 
-  .nav ul {
-    flex-direction: column;
-    gap: var(--space-4);
-  }
+.menuInner {
+  position: relative;
+  padding: var(--space-6);
+}
+
+.menu .nav {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-6);
+}
+
+.menu .nav ul {
+  flex-direction: column;
+  gap: var(--space-4);
 }
