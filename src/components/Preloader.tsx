@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
-import { KANJI_STROKES, KANJI_TRANSFORM, LOGO_PILL, LOGO_VIEWBOX } from '../assets/logoStrokes'
+import { KANJI_TRANSFORM, LOGO_PILL, LOGO_VIEWBOX } from '../assets/logoStrokes'
 import { useLoader } from '../context/LoaderContext'
 import { heroReel, preloader as copy } from '../data/content'
+import { KanjiStrokes, type KanjiStrokesHandle } from './KanjiStrokes'
 import styles from './Preloader.module.css'
 
 /** full = primeira visita · quick = já viu nesta sessão · reduced = prefers-reduced-motion */
@@ -69,7 +70,7 @@ export function Preloader() {
   const digitsRef = useRef<(HTMLSpanElement | null)[]>([])
   const barRef = useRef<HTMLSpanElement>(null)
   const pillRef = useRef<SVGPathElement>(null)
-  const strokesRef = useRef<(SVGPathElement | null)[]>([])
+  const kanjiRef = useRef<KanjiStrokesHandle>(null)
 
   useEffect(() => {
     const root = rootRef.current
@@ -93,14 +94,14 @@ export function Preloader() {
 
     // ----- traços: comprimento real de cada path -----
     const drawn = mode === 'full'
-    const paths = [pillRef.current, ...strokesRef.current].filter(Boolean) as SVGPathElement[]
-    const lengths = paths.map((p) => p.getTotalLength())
-    paths.forEach((p, i) => {
-      p.style.strokeDasharray = `${lengths[i]}`
-      p.style.strokeDashoffset = drawn ? `${lengths[i]}` : '0'
-      // linecap round desenha um ponto mesmo com traço de tamanho 0: esconde até começar
-      p.style.opacity = drawn ? '0' : '1'
-    })
+    const pill = pillRef.current
+    if (!pill) return
+    const pillLen = pill.getTotalLength()
+    pill.style.strokeDasharray = `${pillLen}`
+    pill.style.strokeDashoffset = drawn ? `${pillLen}` : '0'
+    // linecap round desenha um ponto mesmo com traço de tamanho 0: esconde até começar
+    pill.style.opacity = drawn ? '0' : '1'
+    kanjiRef.current?.init(drawn ? 'full' : 'quick')
     if (!drawn) root.style.setProperty('--fill', '1')
 
     // ----- progresso real -----
@@ -144,12 +145,10 @@ export function Preloader() {
       if (!drawn) return
 
       // 0–15%: pílula · 15–95%: 8 traços, uma fatia cada · 95–100%: preenchimento
-      const slice = 80 / KANJI_STROKES.length
-      paths.forEach((p, i) => {
-        const f = i === 0 ? clamp01(value / 15) : clamp01((value - 15 - (i - 1) * slice) / slice)
-        p.style.strokeDashoffset = `${lengths[i] * (1 - f)}`
-        p.style.opacity = f > 0 ? '1' : '0'
-      })
+      const pillF = clamp01(value / 15)
+      pill.style.strokeDashoffset = `${pillLen * (1 - pillF)}`
+      pill.style.opacity = pillF > 0 ? '1' : '0'
+      kanjiRef.current?.drawTo(clamp01((value - 15) / 80))
       root.style.setProperty('--fill', String(clamp01((value - 95) / 5)))
     }
 
@@ -249,18 +248,7 @@ export function Preloader() {
         <svg viewBox={`0 0 ${LOGO_VIEWBOX.width} ${LOGO_VIEWBOX.height}`} className={styles.svg}>
           <path ref={pillRef} d={LOGO_PILL} className={styles.pill} data-stroke="pill" />
           <g transform={KANJI_TRANSFORM} className={styles.kanji}>
-            {KANJI_STROKES.map((d, i) => (
-              <path
-                key={i}
-                d={d}
-                data-stroke={i + 1}
-                // fill só faz sentido em forma fechada; num traço aberto ele pinta a "corda"
-                data-closed={/z\s*$/i.test(d) || undefined}
-                ref={(el) => {
-                  strokesRef.current[i] = el
-                }}
-              />
-            ))}
+            <KanjiStrokes ref={kanjiRef} />
           </g>
         </svg>
       </div>
