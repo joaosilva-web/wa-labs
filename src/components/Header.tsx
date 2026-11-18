@@ -27,6 +27,16 @@ export function Header() {
   const mobile = useMediaQuery('(max-width: 760px)')
   // abaixo de 861px só o fosco: refratar a cada frame de scroll pesa demais no celular
   const wide = useMediaQuery('(min-width: 861px)')
+  // scale maior no tom light: o bisel entorta as linhas finas da espiral de forma visível
+  const [capsuleScale, setCapsuleScale] = useState(38)
+  useEffect(() => {
+    const header = headerRef.current
+    if (!header) return
+    const update = () => setCapsuleScale(header.dataset.tone === 'light' ? 38 : 28)
+    const mo = new MutationObserver(update)
+    mo.observe(header, { attributes: true, attributeFilter: ['data-tone'] })
+    return () => mo.disconnect()
+  }, [])
 
   useHeaderTone(headerRef, { bandTop: TOP + HEIGHT / 2 - BAND / 2, bandHeight: BAND })
 
@@ -88,12 +98,7 @@ export function Header() {
       <LiquidGlass
         className={styles.capsule}
         bevel={16}
-        scale={28}
-        blur={2}
-        saturate={1.2}
-        brightness={1.03}
-        fallbackBlur={16}
-        fallbackSaturate={1.4}
+        scale={capsuleScale}
         refraction={wide && HEADER_REFRACTION}
       >
         <div className={styles.inner}>
@@ -124,8 +129,6 @@ export function Header() {
           id="menu"
           className={styles.menu}
           refraction={false}
-          fallbackBlur={16}
-          fallbackSaturate={1.4}
           hidden={!open}
         >
           <div className={styles.menuInner}>{navigation}</div>
