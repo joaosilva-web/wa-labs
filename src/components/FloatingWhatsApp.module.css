@@ -16,11 +16,12 @@
   --lg-saturate: 1.1;
   --lg-brightness: 1;
   --lg-tint: rgb(255 255 255 / 0.25);
-  --lg-tint-image: linear-gradient(to bottom, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0));
-  --lg-rim:
-    inset 0 0 0 1px rgb(0 0 0 / 0.07),
-    inset 0 1px 0 rgb(255 255 255 / 0.9),
-    inset 0 -6px 12px -8px rgb(0 0 0 / 0.10);
+  --lg-tint-highlight: rgb(255 255 255 / 0.08);
+  /* borda escura (fundo claro) */
+  --lg-rim-outline: rgb(0 0 0 / 0.07);
+  --lg-rim-top:     rgb(255 255 255 / 0.9);
+  --lg-rim-base:    rgb(0 0 0 / 0.10);
+  --lg-rim-inner:   transparent;
   --lg-shine: 0.4;
   --fg: var(--color-text);
   --dot-border: var(--color-bg);
@@ -30,9 +31,13 @@
 .wrapper[data-tone='dark'] {
   --lg-blur: 3px;
   --lg-tint: color-mix(in srgb, var(--color-inverse-bg) 45%, transparent);
-  --lg-edge: 0.6;
+  --lg-tint-highlight: rgb(255 255 255 / 0);
+  /* borda de luz branca (fundo escuro) */
+  --lg-rim-outline: rgb(255 255 255 / 0.11);
+  --lg-rim-top:     rgb(255 255 255 / 0.45);
+  --lg-rim-base:    transparent;
+  --lg-rim-inner:   transparent;
   --lg-shine: 0.5;
-  --lg-rim: initial;
   --fg: var(--color-inverse-text);
   --dot-border: var(--color-inverse-bg);
   --fab-shadow: 0 8px 24px -8px rgb(0 0 0 / 0.30);
@@ -41,7 +46,12 @@
 .wrapper[data-tone='primary'] {
   --lg-blur: 1px;
   --lg-tint: rgb(255 255 255 / 0.08);
-  --lg-rim: initial;
+  --lg-tint-highlight: rgb(255 255 255 / 0);
+  /* borda de luz branca (fundo verde) */
+  --lg-rim-outline: rgb(255 255 255 / 0.18);
+  --lg-rim-top:     rgb(255 255 255 / 0.75);
+  --lg-rim-base:    transparent;
+  --lg-rim-inner:   transparent;
   --fg: var(--color-on-primary);
   --dot-border: var(--color-primary);
   --fab-shadow: 0 8px 24px -8px rgb(0 0 0 / 0.25);
@@ -58,14 +68,38 @@
   scale: 0.6;
   /* visibility espera o fade das camadas internas (0.3s) antes de sumir */
   visibility: hidden;
-  transition: scale 0.2s var(--ease), visibility 0s linear 0.3s;
+  transition:
+    scale 0.2s var(--ease),
+    visibility 0s linear 0.3s,
+    --lg-blur          0.45s var(--ease),
+    --lg-saturate      0.45s var(--ease),
+    --lg-brightness    0.45s var(--ease),
+    --lg-tint          0.45s var(--ease),
+    --lg-tint-highlight 0.45s var(--ease),
+    --lg-shine         0.45s var(--ease),
+    --lg-rim-outline   0.45s var(--ease),
+    --lg-rim-top       0.45s var(--ease),
+    --lg-rim-base      0.45s var(--ease),
+    --lg-rim-inner     0.45s var(--ease);
 }
 
 .wrapper[data-shown] {
   pointer-events: auto;
   visibility: visible;
   /* visibilidade imediata ao aparecer; scale fica pro spring */
-  transition: scale 0.2s var(--ease), visibility 0s linear 0s;
+  transition:
+    scale 0.2s var(--ease),
+    visibility 0s linear 0s,
+    --lg-blur          0.45s var(--ease),
+    --lg-saturate      0.45s var(--ease),
+    --lg-brightness    0.45s var(--ease),
+    --lg-tint          0.45s var(--ease),
+    --lg-tint-highlight 0.45s var(--ease),
+    --lg-shine         0.45s var(--ease),
+    --lg-rim-outline   0.45s var(--ease),
+    --lg-rim-top       0.45s var(--ease),
+    --lg-rim-base      0.45s var(--ease),
+    --lg-rim-inner     0.45s var(--ease);
   animation: fab-spring-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
@@ -101,7 +135,8 @@
   box-shadow: var(--fab-shadow);
   transition:
     width 0.3s var(--ease),
-    box-shadow 0.3s var(--ease);
+    box-shadow 0.3s var(--ease),
+    color 0.45s var(--ease);
   color: var(--fg);
   overflow: hidden; /* clip do label na animação de expansão */
 }

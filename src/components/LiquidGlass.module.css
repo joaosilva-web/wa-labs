@@ -2,6 +2,9 @@
  * Vidro líquido. O backdrop-filter vem inline do TSX com CSS vars como defaults
  * (ver JSDoc do componente para a lista completa de vars ajustáveis pelo pai).
  * O reflexo inclina com --angle / --sx se o pai escrever esses valores (a pílula dos serviços).
+ *
+ * As variáveis --lg-* estão registradas com @property em global.css: o navegador
+ * pode interpolá-las com transition quando definidas num ancestral (ex.: .header).
  */
 :where(.root) {
   /* as camadas são absolutas e se apoiam aqui; o pai pode trocar por fixed/absolute.
@@ -37,21 +40,21 @@
 /* os brancos aqui e no .shine são cor de MATERIAL, não cor de interface */
 .tint {
   background: var(--lg-tint, rgb(255 255 255 / 0.06));
-  /* gradiente vertical leve (ex.: topo mais claro no tom light) */
-  background-image: var(--lg-tint-image, none);
+  /* gradiente de topo: --lg-tint-highlight é <color> registrada — anima sem estalo */
+  background-image: linear-gradient(to bottom, var(--lg-tint-highlight), transparent);
   /*
-   * --lg-rim: substitui todo o box-shadow quando definida (bordas escuras p/ fundo claro).
-   * Sem ela, usa a borda de luz branca controlada por --lg-edge.
+   * Borda em 4 camadas com estrutura fixa; só as cores variam por tom.
+   * As variáveis são <color> registradas (@property em global.css): o navegador
+   * interpola camada por camada quando o ancestral (ex.: .header) as transiciona.
+   * Valores iniciais das props reproduzem o antigo padrão de borda de luz branca.
    */
-  box-shadow: var(--lg-rim,
-    inset 0 1px 1px rgb(255 255 255 / calc(0.75 * var(--lg-edge, 1))),
-    inset 0 -1px 1px rgb(255 255 255 / calc(0.25 * var(--lg-edge, 1))),
-    inset 0 0 0 1px rgb(255 255 255 / calc(0.18 * var(--lg-edge, 1)))
-  );
-  transition:
-    background-color 0.3s var(--ease),
-    background-image 0.3s var(--ease),
-    box-shadow 0.3s var(--ease);
+  box-shadow:
+    inset 0 0 0 1px var(--lg-rim-outline),
+    inset 0 1px 1px var(--lg-rim-top),
+    inset 0 -8px 14px -10px var(--lg-rim-base),
+    inset 0 6px 12px -10px var(--lg-rim-inner);
+  /* anima background-color para componentes sem transition no ancestral */
+  transition: background-color 0.3s var(--ease);
 }
 
 /* ---------- reflexo especular ---------- */
