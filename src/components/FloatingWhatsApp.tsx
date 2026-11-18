@@ -60,6 +60,7 @@ export function FloatingWhatsApp() {
       data-tone="light"
       data-shown={shown || undefined}
       data-expanded={expanded || undefined}
+      aria-hidden={shown ? undefined : 'true'}
       onMouseEnter={() => wide && setExpanded(true)}
       onMouseLeave={() => setExpanded(false)}
     >
@@ -70,8 +71,6 @@ export function FloatingWhatsApp() {
         refraction={wide}
         fallbackBlur={14}
         fallbackSaturate={1.6}
-        aria-label="Conversar no WhatsApp (abre em nova aba)"
-        role="link"
       >
         <a
           href={contact.whatsapp}
