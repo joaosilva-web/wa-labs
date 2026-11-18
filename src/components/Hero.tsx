@@ -65,10 +65,16 @@ function Segment({ segment, reelIndex }: { segment: TitleSegment; reelIndex: num
 
 /** Mapeia p num trecho [a, b] → 0..1 */
 const range = (p: number, a: number, b: number) => Math.min(1, Math.max(0, (p - a) / (b - a)))
+const smoothstep = (t: number) => t * t * (3 - 2 * t)
+
+/** Base da faixa onde o header lê o tom (16px do topo + metade da cápsula + 20px). */
+const HEADER_BAND_BOTTOM = 68
 
 export function Hero() {
   const wrapperRef = useRef<HTMLElement>(null)
   const stickyRef = useRef<HTMLDivElement>(null)
+  /** Topo da pílula em repouso, relativo ao sticky (px): diz quando a camada verde chega no header. */
+  const pillTopRef = useRef(Infinity)
   const reduced = useMediaQuery(REDUCED_MOTION)
   const pinned = !reduced
 
@@ -101,6 +107,7 @@ export function Hero() {
 
     set('--pill-l', `${r.left - shift - s.left}px`)
     set('--pill-r', `${s.right - (r.right - shift)}px`)
+    pillTopRef.current = r.top - s.top
     set('--pill-t', `${r.top - s.top}px`)
     set('--pill-b', `${s.bottom - r.bottom}px`)
     set('--pill-h', `${r.height}px`)
@@ -130,6 +137,13 @@ export function Hero() {
         '--header-hide',
         p < 1 ? range(p, 0.6, 0.75).toFixed(3) : '0',
       )
+      // Tom pro header: a camada (verde) cobre o topo quando o inset de cima (--ct no CSS)
+      // passa da faixa do header; o escurecimento (p ≥ 0.75) emenda com o Manifesto
+      const top = pillTopRef.current * (1 - smoothstep(range(p, 0.2, 0.75)))
+      const tone = p >= 0.75 ? 'dark' : p > 0.2 && top < HEADER_BAND_BOTTOM ? 'primary' : 'light'
+      if (wrapperRef.current && wrapperRef.current.dataset.tone !== tone) {
+        wrapperRef.current.dataset.tone = tone
+      }
       setScrolled(p > 0)
       setSpiralOn(p < 0.3)
     },
@@ -142,6 +156,7 @@ export function Hero() {
     if (pinned) return
     sticky?.style.removeProperty('--p')
     sticky?.removeAttribute('data-expanded')
+    if (wrapperRef.current) wrapperRef.current.dataset.tone = 'light'
     document.documentElement.style.removeProperty('--header-hide')
     setScrolled(false)
     setSpiralOn(true)
@@ -157,7 +172,7 @@ export function Hero() {
   const { meta } = hero
 
   return (
-    <section id="top" ref={wrapperRef} className={styles.hero}>
+    <section id="top" ref={wrapperRef} className={styles.hero} data-tone="light">
       <div ref={stickyRef} className={styles.sticky} data-revealed={isDone || undefined}>
         <SpiralBackground trackRef={stickyRef} active={spiralOn && isDone} />
 

@@ -23,7 +23,7 @@ export function Marquee({ items, separator = '和', label }: Props) {
   return (
     <>
       <p className={styles.srOnly}>{label}</p>
-      <div className={styles.marquee} aria-hidden="true">
+      <div className={styles.marquee} data-tone="primary" aria-hidden="true">
         <div ref={trackRef} className={styles.track}>
           {[0, 1].map((copy) => (
             <span key={copy} className={styles.group}>
