@@ -53,8 +53,9 @@ function buildSegments(node: ReactNode, counter: { i: number }): ReactNode[] {
   if (isValidElement(node)) {
     const nodeChildren = (node.props as { children?: ReactNode }).children
     if (nodeChildren == null) return [node]
+    const elemKey = `e${counter.i}` // captura antes de avançar o contador nos filhos
     const innerSegs = buildSegments(nodeChildren, counter)
-    return [cloneElement(node as React.ReactElement, {}, ...innerSegs)]
+    return [cloneElement(node as React.ReactElement, { key: elemKey }, ...innerSegs)]
   }
 
   return []

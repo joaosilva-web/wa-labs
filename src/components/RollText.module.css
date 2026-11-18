@@ -43,6 +43,13 @@
   will-change: transform;
 }
 
+/* Elemento não-.word imediatamente antes de um .word (ex.: span.num do footer):
+   restaura o espaço equivalente ao da regra anterior (.item > :not(.char) + .char).
+   O .4em está no contexto de fonte cheia — igual ao espaçamento original. */
+:not(.word) + .word {
+  margin-left: 0.4em;
+}
+
 /* Visualmente oculto, semanticamente presente para leitores de tela */
 .srOnly {
   position: absolute;
