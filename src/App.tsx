@@ -1,4 +1,6 @@
+import { About } from './components/About'
 import { Contact } from './components/Contact'
+import { Faq } from './components/Faq'
 import { FloatingWhatsApp } from './components/FloatingWhatsApp'
 import { Cursor } from './components/Cursor'
 import { Footer } from './components/Footer'
@@ -21,6 +23,8 @@ function Site() {
         <Manifesto />
         <Services />
         <Process />
+        <About />
+        <Faq />
         <Contact />
       </main>
       <Footer />
