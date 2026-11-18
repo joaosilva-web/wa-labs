@@ -174,26 +174,53 @@ export const services: Service[] = [
   },
 ]
 
+export const processSection = {
+  label: 'Processo',
+  /** "04 etapas" (mobile) — o número vem do tamanho da lista */
+  countLabel: 'etapas',
+  title: ['Simples,', 'do começo ao fim.'],
+  /** Convite pra rolar, embaixo do título (desktop, trilho horizontal) */
+  scrollHint: 'Role',
+  /** Contador "02 / 04" lido por leitores de tela */
+  counterSr: (step: number, total: number) => `Etapa ${step} de ${total}`,
+}
+
 export const process = [
   {
     step: '01',
+    kanji: '話',
+    reading: 'Hanasu',
+    meaning: 'Conversar',
     title: 'Conversa',
     description: 'Entendemos o seu objetivo, o público e o que realmente precisa existir.',
+    deliverables: ['Objetivos e público', 'Referências', 'Escopo inicial'],
   },
   {
     step: '02',
+    kanji: '案',
+    reading: 'An',
+    meaning: 'Plano',
     title: 'Proposta',
     description: 'Escopo, prazo e valor claros antes de qualquer linha de código.',
+    deliverables: ['Escopo detalhado', 'Prazo', 'Orçamento fechado'],
   },
   {
     step: '03',
+    kanji: '作',
+    reading: 'Tsukuru',
+    meaning: 'Fazer',
     title: 'Construção',
     description: 'Entregas curtas e frequentes, com você acompanhando cada etapa.',
+    deliverables: ['Entregas curtas', 'Ambiente de testes', 'Ajustes com você'],
   },
   {
     step: '04',
+    kanji: '発',
+    reading: 'Hatsu',
+    meaning: 'Lançar',
     title: 'Lançamento',
     description: 'Publicamos, ajustamos e seguimos por perto depois do go-live.',
+    deliverables: ['Publicação', 'Domínio e SEO básico', 'Suporte pós-lançamento'],
   },
 ]
 

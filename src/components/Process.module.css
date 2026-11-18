@@ -1,44 +1,386 @@
+/*
+ * (02) Processo — fundo claro depois da faixa verde dos Serviços.
+ * Base: lista vertical (mobile e reduced motion).
+ * [data-pinned]: a seção prende e o scroll anda o trilho na horizontal.
+ * O JS escreve no .sticky: --p (0 → 1), --travel (px) e --stop-N (p de cada etapa).
+ * Na lista, --line (0 → 1) desenha a linha vertical do mobile.
+ */
 .process {
-  background: var(--color-inverse-bg);
-  color: var(--color-inverse-text);
+  --header-h: 72px; /* o header fica fixo por cima da seção */
+  /* número gigante vazado: limitado pela altura também, pra caber em telas baixas */
+  --num: clamp(4rem, 18vw, 6rem);
+  --pill-h: 4rem;
+
+  position: relative;
+  background: var(--color-bg);
+  color: var(--color-text);
+  /* o trilho é mais largo que a tela: nunca vira scroll horizontal da página */
+  overflow-x: clip;
+  padding-block: var(--space-8) var(--space-24);
 }
 
-.process :global(.eyebrow) {
-  color: var(--color-accent);
+.meta {
+  flex: none;
 }
 
-.heading {
-  font-size: var(--text-2xl);
-  max-width: 20ch;
+/* lista vertical: o "trilho" é só o container */
+.rail {
+  width: min(100% - 2 * var(--space-6), var(--container-wide));
+  margin-inline: auto;
 }
 
-.steps {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: var(--space-8);
-  margin-top: var(--space-12);
-  padding: 0;
-  list-style: none;
-}
-
-.step {
-  padding-top: var(--space-6);
-  border-top: 2px solid color-mix(in srgb, var(--color-inverse-text) 20%, transparent);
-}
-
-.number {
-  font-family: var(--font-display);
-  font-size: var(--text-xl);
-  font-weight: 700;
-  color: var(--color-primary);
+/* ---------- abertura ---------- */
+.opening {
+  margin-block: var(--space-16) var(--space-12);
 }
 
 .title {
-  margin-top: var(--space-3);
-  font-size: var(--text-lg);
+  font-size: clamp(2.25rem, 1rem + 5vw, 3.5rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.light,
+.heavy {
+  display: block;
+}
+
+.light {
+  font-weight: 200;
+}
+
+.heavy {
+  font-weight: 900;
+}
+
+.hint {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-top: var(--space-8);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.hintArrow {
+  display: inline-block;
+  animation: nudge 1.8s var(--ease) infinite;
+}
+
+@keyframes nudge {
+  50% {
+    translate: 0.4em 0;
+  }
+}
+
+/* ---------- etapas ---------- */
+.steps {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  margin: 0;
+  padding: 0 0 0 var(--space-12);
+  list-style: none;
+}
+
+/* mobile: fio vertical que se desenha com o scroll (inteiro no reduced motion) */
+.steps::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: var(--space-3);
+  width: 1px;
+  background: color-mix(in srgb, var(--color-text) 25%, transparent);
+  transform: scaleY(var(--line, 0));
+  transform-origin: top;
+}
+
+/* --fade anima de 35% → 100% (registrada pra poder ter transição) */
+@property --fade {
+  syntax: '<percentage>';
+  inherits: true;
+  initial-value: 100%;
+}
+
+/*
+ * Etapa inativa ≈ opacidade 0.35, mas feita misturando as cores com o fundo:
+ * o resultado é o mesmo sobre o fundo liso, e a pílula continua opaca — com
+ * opacity de verdade o fio da linha do tempo apareceria atravessando ela.
+ */
+.step {
+  --fade: 35%;
+  --ink: color-mix(in srgb, var(--color-text) var(--fade), var(--color-bg));
+  --ink-muted: color-mix(in srgb, var(--color-text-muted) var(--fade), var(--color-bg));
+  --pill-bg: color-mix(in srgb, var(--color-primary) var(--fade), var(--color-bg));
+  --pill-ink: color-mix(in srgb, var(--color-on-primary) var(--fade), var(--pill-bg));
+
+  position: relative;
+  color: var(--ink);
+  transition: --fade 400ms var(--ease);
+}
+
+.step[data-active] {
+  --fade: 100%;
+}
+
+/* mobile: bolinha de cada etapa sobre o fio */
+.step::before {
+  content: '';
+  position: absolute;
+  top: calc(var(--num) * 0.4 - 6px);
+  left: calc(var(--space-12) * -1 + var(--space-3) - 6px);
+  width: 13px;
+  height: 13px;
+  border: 1.5px solid var(--color-text);
+  border-radius: 50%;
+  background: var(--color-primary);
+}
+
+.number {
+  display: block;
+  font-family: var(--font-display);
+  font-size: var(--num);
+  font-weight: 900;
+  line-height: 0.8;
+  letter-spacing: -0.04em;
+  color: transparent;
+  -webkit-text-stroke: 1.5px var(--ink);
+}
+
+.kanjiRow {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+/* mesmo formato da pílula da hero; kanji escuro sobre o verde (verde direto no claro não tem contraste) */
+.pill {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  height: var(--pill-h);
+  aspect-ratio: 2.2;
+  border-radius: var(--radius-pill);
+  background: var(--pill-bg);
+  color: var(--pill-ink);
+  transform-origin: left center;
+  transition: scale 400ms var(--ease);
+}
+
+.kanji {
+  font-size: calc(var(--pill-h) * 0.6);
+  font-weight: 700;
+  line-height: 1;
+}
+
+.reading {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.body {
+  display: grid;
+  grid-template-columns: minmax(0, 36ch) auto;
+  align-items: start;
+  gap: var(--space-6) var(--space-12);
+  margin-top: var(--space-6);
+}
+
+.stepTitle {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  line-height: 1.1;
 }
 
 .description {
+  max-width: 36ch;
   margin-top: var(--space-2);
-  color: color-mix(in srgb, var(--color-inverse-text) 70%, transparent);
+  color: var(--ink-muted);
+}
+
+.deliverables {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+}
+
+.deliverables li::before {
+  content: '— ';
+  color: var(--ink-muted);
+}
+
+/* ---------- contador ---------- */
+.counter {
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ================= desktop: seção presa + trilho horizontal ================= */
+.process[data-pinned] {
+  --num: clamp(6rem, min(14vw, 24svh), 14rem);
+  --pill-h: clamp(3.5rem, 11svh, 6.5rem);
+
+  /* ~1 tela de scroll por painel (abertura + etapas) */
+  height: calc(var(--panels) * 100svh);
+  padding: 0;
+}
+
+.process[data-pinned] .sticky {
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100svh;
+  padding-block: calc(var(--header-h) + var(--space-6)) var(--space-8);
+  /* clip (não hidden): nem o foco consegue rolar o sticky por baixo do trilho */
+  overflow: clip;
+}
+
+.process[data-pinned] .stage {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-height: 0;
+}
+
+.process[data-pinned] .rail {
+  display: flex;
+  align-items: center;
+  width: max-content;
+  margin: 0;
+  /* alinha o começo e o fim com o container-wide (o % é da largura da tela) */
+  padding-inline: max(var(--space-6), calc((100% - var(--container-wide)) / 2));
+  transform: translateX(calc(var(--p, 0) * -1 * var(--travel, 0px)));
+  will-change: transform;
+}
+
+.process[data-pinned] .opening {
+  flex: none;
+  width: 55vw;
+  margin: 0;
+  padding-right: var(--space-12);
+}
+
+.process[data-pinned] .title {
+  font-size: clamp(2.5rem, 1rem + 6vw, 8rem);
+}
+
+.process[data-pinned] .steps {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0;
+  padding: 0;
+}
+
+/* o fio da linha do tempo na altura das pílulas; desenha da esquerda conforme --p */
+.process[data-pinned] .steps::before {
+  top: calc(var(--num) * 0.8 + var(--space-6) + var(--pill-h) / 2);
+  bottom: auto;
+  left: 0;
+  right: 0;
+  width: auto;
+  height: 1px;
+  transform: scaleX(var(--p, 0));
+  transform-origin: left;
+}
+
+.process[data-pinned] .step {
+  flex: none;
+  width: max(560px, 60vw);
+  padding-right: var(--space-16);
+}
+
+.process[data-pinned] .step::before {
+  content: none;
+}
+
+.process[data-pinned] .pill {
+  scale: 0.9;
+}
+
+.process[data-pinned] .step[data-active] .pill {
+  scale: 1;
+}
+
+/* ---------- barra de progresso ---------- */
+.bar {
+  position: relative;
+  flex: none;
+  height: 13px;
+}
+
+.bar::before,
+.barFill {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  translate: 0 -50%;
+}
+
+.bar::before {
+  height: 1px;
+  background: var(--color-border);
+}
+
+.barFill {
+  height: 2px;
+  background: var(--color-primary);
+  transform: scaleX(var(--p, 0));
+  transform-origin: left;
+}
+
+.marker {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--at) * 100%);
+  width: 11px;
+  height: 11px;
+  translate: -50% -50%;
+  border: 1.5px solid var(--color-text);
+  border-radius: 50%;
+  background: var(--color-bg);
+  transition: background-color 400ms var(--ease);
+}
+
+.marker[data-done] {
+  background: var(--color-primary);
+}
+
+/* ---------- mobile ---------- */
+@media (max-width: 860px) {
+  .body {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .deliverables {
+    white-space: normal;
+  }
 }
