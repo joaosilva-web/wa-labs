@@ -64,8 +64,17 @@ const RESIZE_DEBOUNCE = 150
  * Fade: nunca ponha opacity < 1 (nem filter/mask/clip-path) neste elemento ou num ancestral.
  * No Chromium isso cria um "backdrop root" e o vidro passa a refratar o nada; faça fade nas camadas.
  *
- * CSS vars de material (podem vir do pai): --lg-tint, --lg-edge (força da borda de luz),
- * --lg-shine (opacidade do reflexo).
+ * CSS vars de material (podem vir do pai):
+ *   --lg-tint           cor sólida do tint  (padrão: branco 6%)
+ *   --lg-tint-image     gradiente adicional no tint  (padrão: none)
+ *   --lg-edge           força da borda de luz branca  (padrão: 1); ignorada quando --lg-rim está definida
+ *   --lg-rim            substitui todo o box-shadow do tint (bordas escuras p/ fundo claro)
+ *   --lg-shine          opacidade do reflexo especular  (padrão: 1)
+ *   --lg-blur           blur por cima da refração em px  (padrão: valor da prop `blur`)
+ *   --lg-saturate       saturação do filtro  (padrão: valor da prop `saturate`)
+ *   --lg-brightness     brilho do filtro  (padrão: valor da prop `brightness`)
+ *   --lg-fallback-blur  blur do vidro fosco em px  (padrão: valor da prop `fallbackBlur`)
+ *   --lg-fallback-saturate  saturação do fosco  (padrão: valor da prop `fallbackSaturate`)
  */
 export const LiquidGlass = forwardRef<HTMLDivElement, Props>(function LiquidGlass(
   {
@@ -129,9 +138,10 @@ export const LiquidGlass = forwardRef<HTMLDivElement, Props>(function LiquidGlas
   const live = refraction && !!map && !!size
 
   const scales = chromatic ? [scale - 1, scale, scale + 1] : [scale]
+  // Valores das props viram defaults das CSS vars: o pai substitui por tom sem re-render.
   const filter = live
-    ? `url(#${id}) blur(${blur}px) saturate(${saturate}) brightness(${brightness})`
-    : `blur(${fallbackBlur}px) saturate(${fallbackSaturate})`
+    ? `url(#${id}) blur(var(--lg-blur, ${blur}px)) saturate(var(--lg-saturate, ${saturate})) brightness(var(--lg-brightness, ${brightness}))`
+    : `blur(var(--lg-fallback-blur, ${fallbackBlur}px)) saturate(var(--lg-fallback-saturate, ${fallbackSaturate}))`
 
   return (
     <div

@@ -9,13 +9,33 @@
  * opacity < 1 vira "backdrop root" e o vidro refrataria o nada; quem some são as camadas.
  */
 .header {
-  /* tom padrão (light) */
+  /* tom padrão (light): fundo quase branco → vidro transparente com borda escura */
   --hdr-fg: var(--color-text);
   --hdr-muted: var(--color-text-muted);
   --hdr-hover: var(--color-primary);
-  --lg-tint: rgb(255 255 255 / 0.1);
-  --lg-edge: 1;
-  --lg-shine: 0.7;
+
+  /* filtro: pouco blur pra o conteúdo (espiral, texto) aparecer nítido e só o bisel entortar */
+  --lg-blur: 0.4px;
+  --lg-saturate: 1.1;
+  --lg-brightness: 1;
+  --lg-fallback-blur: 10px;
+  --lg-fallback-saturate: 1.2;
+
+  /* material: branco semi-transparente + gradiente vertical leve */
+  --lg-tint: rgb(255 255 255 / 0.25);
+  --lg-tint-image: linear-gradient(to bottom, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0));
+
+  /* borda escura: contorno + fio de luz no topo + sombra de volume na base */
+  --lg-rim:
+    inset 0 0 0 1px rgb(0 0 0 / 0.07),
+    inset 0 1px 0 rgb(255 255 255 / 0.9),
+    inset 0 -8px 14px -10px rgb(0 0 0 / 0.10),
+    inset 0 6px 12px -10px rgb(0 0 0 / 0.06);
+
+  --lg-shine: 0.35;
+
+  /* sombra externa da cápsula (por tom; funde com --hdr-fade) */
+  --hdr-shadow: 0 6px 20px -10px rgb(0 0 0 / calc(0.18 * var(--hdr-fade)));
 
   --hdr-h: 64px;
   --hdr-pad-start: 12px;
@@ -38,15 +58,22 @@
   --hdr-fg: var(--color-inverse-text);
   --hdr-muted: color-mix(in srgb, var(--color-inverse-text) 65%, transparent);
   --hdr-hover: var(--color-primary);
+  --lg-blur: 1px;
   --lg-tint: rgb(255 255 255 / 0.06);
   --lg-edge: 0.6;
+  --lg-shine: 0.5;
+  --lg-rim: initial;
+  --hdr-shadow: 0 8px 24px -8px rgb(0 0 0 / calc(0.25 * var(--hdr-fade)));
 }
 
 .header[data-tone='primary'] {
   --hdr-fg: var(--color-on-primary);
   --hdr-muted: color-mix(in srgb, var(--color-on-primary) 65%, transparent);
   --hdr-hover: color-mix(in srgb, var(--color-on-primary) 60%, transparent);
+  --lg-blur: 1px;
   --lg-tint: rgb(255 255 255 / 0.08);
+  --lg-rim: initial;
+  --hdr-shadow: 0 8px 24px -8px rgb(0 0 0 / calc(0.25 * var(--hdr-fade)));
 }
 
 .header[data-compact] {
@@ -59,7 +86,7 @@
 .capsule {
   height: var(--hdr-h);
   border-radius: 999px;
-  box-shadow: 0 8px 24px -8px rgb(0 0 0 / calc(0.25 * var(--hdr-fade)));
+  box-shadow: var(--hdr-shadow);
   transition:
     height 0.25s var(--ease),
     box-shadow 0.25s var(--ease);
