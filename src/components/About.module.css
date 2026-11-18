@@ -1,18 +1,26 @@
 /*
- * Seção Sobre — tom escuro (sumi), 2 colunas na desktop.
- * Continua o padrão visual do Manifesto e Serviços.
+ * Seção Sobre — tom escuro (sumi).
+ * --enter   : 0 → 1 enquanto a seção entra (topo do vp → 30% da tela)
+ * --section-p: 0 → 1 enquanto a seção atravessa completamente o vp
+ * --why     : 0 → 1 dentro da área tall do bloco "Por que Wa?"
  */
 
 .about {
   --muted: color-mix(in srgb, var(--color-inverse-text) 65%, transparent);
 
   position: relative;
+  z-index: 1;              /* passa por cima do fim do Processo */
+  margin-top: -4rem;       /* cobre a última linha do Processo */
   background: var(--color-inverse-bg);
   color: var(--color-inverse-text);
+
+  /* Cúpula de entrada: começa como domo e vira reta conforme --enter sobe */
+  border-top-left-radius: calc((1 - var(--enter, 0)) * 40vw) calc((1 - var(--enter, 0)) * 10vw);
+  border-top-right-radius: calc((1 - var(--enter, 0)) * 40vw) calc((1 - var(--enter, 0)) * 10vw);
 }
 
 .inner {
-  padding-block: var(--space-8) var(--space-24);
+  padding-block: var(--space-8) 0;
 }
 
 /* ---------- corpo (2 colunas) ---------- */
@@ -31,10 +39,8 @@
   }
 }
 
-/* ---------- reveal ---------- */
-/* os filhos diretos do .body têm --i; o .why também */
-.body > *,
-.why {
+/* ---------- reveal da coluna de texto (uma vez) ---------- */
+.textCol > * {
   opacity: 0;
   translate: 0 24px;
   transition:
@@ -42,17 +48,15 @@
     translate 0.6s var(--ease) calc(var(--i, 0) * 80ms);
 }
 
-.body[data-revealed] > *,
-.body[data-revealed] ~ .why {
+.body[data-revealed] .textCol > * {
   opacity: 1;
   translate: 0 0;
 }
 
 /* ---------- coluna da foto ---------- */
 .photoCol {
-  /* fixa no topo na desktop ao scrollar o texto */
   position: sticky;
-  top: calc(80px + var(--space-6)); /* header ~64px + folga */
+  top: calc(80px + var(--space-6));
   align-self: start;
 }
 
@@ -64,22 +68,31 @@
   }
 }
 
+/* ---------- pílula da foto ---------- */
 .photoWrap {
   position: relative;
   border-radius: var(--radius-pill);
   overflow: hidden;
   aspect-ratio: 4 / 5;
-  /* anel de 1px */
   box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.12);
+
+  /* Revelação de baixo pra cima: clip desde o topo diminui até 0 */
+  clip-path: inset(calc((1 - var(--enter, 0)) * 100%) 0 0 0 round 999px);
 }
 
-/* Duotone: grayscale + overlay de cor primária */
+/* Duotone: grayscale + overlay. Vai sumindo conforme a foto centra na tela
+   e volta ao se afastar — calculado com min() (triângulo 0→1→0 em --section-p).
+   O hover desfaz tudo imediatamente.                                        */
 .photo {
   width: 100%;
-  height: 100%;
+  /* parallax: 115% de altura, desloca ±7.5% conforme --section-p */
+  height: 115%;
+  margin-top: -7.5%;
   object-fit: cover;
   object-position: center top;
-  filter: grayscale(100%) contrast(1.1);
+
+  filter: grayscale(calc((1 - 2 * min(var(--section-p, 0.5), calc(1 - var(--section-p, 0.5)))) * 100%)) contrast(1.1);
+  transform: translateY(calc((var(--section-p, 0.5) - 0.5) * -13%));
   transition: filter 0.6s var(--ease);
 }
 
@@ -89,13 +102,14 @@
   inset: 0;
   background: var(--color-primary);
   mix-blend-mode: multiply;
-  opacity: 0.55;
+  opacity: calc(0.55 * (1 - 2 * min(var(--section-p, 0.5), calc(1 - var(--section-p, 0.5)))));
   transition: opacity 0.6s var(--ease);
   pointer-events: none;
 }
 
 .photoWrap:hover .photo {
   filter: none;
+  transform: translateY(calc((var(--section-p, 0.5) - 0.5) * -13%)); /* mantém parallax */
 }
 
 .photoWrap:hover::after {
@@ -138,8 +152,21 @@
   font-weight: 200;
 }
 
+/* data-wave: cada letra responde ao cursor (desktop) ou à onda de scroll (mobile) */
+.light [data-wave] {
+  display: inline-block;
+}
+
 .heavy {
   font-weight: 900;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
 }
 
 .paragraph {
@@ -150,18 +177,18 @@
   max-width: 44ch;
 }
 
-/* ---------- facts ---------- */
+/* ---------- fatos ---------- */
 .facts {
   display: flex;
   flex-wrap: wrap;
   gap: 0;
   margin: 0;
-  border-top: 1px solid color-mix(in srgb, var(--color-inverse-text) 15%, transparent);
   padding-top: var(--space-6);
 }
 
 .fact {
   flex: 1 0 120px;
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
@@ -172,6 +199,38 @@
 
 .fact:last-child {
   border-right: none;
+}
+
+/* Borda superior que se desenha da esquerda pra direita */
+.fact::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: color-mix(in srgb, var(--color-inverse-text) 15%, transparent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.5s var(--ease) calc(var(--i-fact, 0) * 100ms);
+}
+
+.facts[data-revealed] .fact::before {
+  transform: scaleX(1);
+}
+
+/* Texto dos fatos: sobe com fade logo depois da borda */
+.fact > * {
+  opacity: 0;
+  translate: 0 8px;
+  transition:
+    opacity 0.4s var(--ease) calc(0.3s + var(--i-fact, 0) * 100ms),
+    translate 0.4s var(--ease) calc(0.3s + var(--i-fact, 0) * 100ms);
+}
+
+.facts[data-revealed] .fact > * {
+  opacity: 1;
+  translate: 0 0;
 }
 
 .factLabel {
@@ -189,53 +248,124 @@
   color: var(--color-inverse-text);
 }
 
-/* ---------- bloco "Por que Wa?" ---------- */
-.why {
+/* ---------- bloco "Por que Wa?" — área tall com conteúdo sticky ---------- */
+.whyArea {
+  position: relative;
+  height: 180svh;
+  margin-top: var(--space-12);
+}
+
+@media (max-width: 860px) {
+  .whyArea {
+    height: auto; /* mobile: sem altura fixa, sem sticky */
+    padding-block: var(--space-12) var(--space-24);
+    margin-top: var(--space-12);
+  }
+}
+
+.whySticky {
+  position: sticky;
+  top: calc(80px + var(--space-6));
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: start;
   gap: var(--space-8) var(--space-12);
-  padding-block: var(--space-12);
-  margin-top: var(--space-12);
+  padding-top: var(--space-12);
   border-top: 1px solid color-mix(in srgb, var(--color-inverse-text) 15%, transparent);
 }
 
-@media (max-width: 600px) {
-  .why {
+@media (max-width: 860px) {
+  .whySticky {
+    position: static;
     grid-template-columns: 1fr;
   }
 }
 
-.whyLeft {
+/* ---------- kanji container (relativo — ancora a espiral) ---------- */
+.kanjiContainer {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: var(--space-2);
+  gap: var(--space-4);
 }
 
-.whyKanji {
-  font-family: var(--font-display);
-  font-size: clamp(6rem, 14vw, 12rem);
-  font-weight: 900;
-  line-height: 1;
-  color: var(--color-primary);
-  /* efeito cursor proximity: se o hook estiver ativo, --weight substitui o 900 */
-  font-variation-settings: 'wght' var(--weight, 900);
+/* Espiral SVG: posicionada absolutamente, centralizada e maior que o kanji */
+.whySvg {
+  position: absolute;
+  /* ≈140% do kanjiSvg, centralizado com leve offset para transbordar pro texto */
+  width: 140%;
+  top: 50%;
+  left: 50%;
+  translate: -45% -55%;
+  pointer-events: none;
+  overflow: visible;
+  z-index: 0;
 }
 
+/* Espiral: desenha com --why (0→0.6) e gira de -90° para 0° */
+.spiralGroup {
+  transform-origin: 50px 50px; /* centro do viewBox 100×100 */
+  rotate: calc((clamp(0, calc(var(--why, 0) / 0.6), 1) - 1) * -90deg);
+}
+
+.spiralPath {
+  stroke: var(--color-primary);
+  opacity: 0.6;
+  /*
+   * stroke-dasharray e stroke-dashoffset são definidos via JS (--spiral-len).
+   * Enquanto o JS não roda, a espiral fica invisível (stroke-dasharray 0).
+   */
+  stroke-dashoffset: calc(var(--spiral-len, 10000) * (1 - clamp(0, calc(var(--why, 0) / 0.6), 1)));
+}
+
+/* Pulso ao completar (data-pulsed no whyArea) */
+.whyArea[data-pulsed] .spiralPath {
+  animation: spiralPulse 0.8s var(--ease) both;
+}
+
+@keyframes spiralPulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* Kanji SVG (na frente da espiral) */
+.kanjiSvg {
+  position: relative;
+  z-index: 1;
+  width: clamp(80px, 18vw, 160px);
+  height: auto;
+  overflow: visible;
+}
+
+/* Traços do 和 em --color-primary */
+.kanjiStrokes path {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Leitura "WA · HARMONIA": aparece quando os traços terminam (--why ≥ 0.9) */
 .whyReading {
   font-family: var(--font-mono);
   font-size: var(--text-sm);
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: var(--muted);
+  opacity: clamp(0, calc((var(--why, 0) - 0.9) / 0.1), 1);
 }
 
+/* ---------- texto "Por que Wa?" ---------- */
 .whyRight {
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
   padding-top: var(--space-4);
+  /* fade-in entre --why 0.7 e 1.0 */
+  opacity: clamp(0, calc((var(--why, 0) - 0.7) / 0.3), 1);
+  translate: 0 calc((1 - clamp(0, calc((var(--why, 0) - 0.7) / 0.3), 1)) * 20px);
 }
 
 .whyTitle {
@@ -252,4 +382,22 @@
   line-height: 1.6;
   color: var(--muted);
   max-width: 52ch;
+}
+
+/* ---------- mobile: espiral centralizada atrás do kanji, texto abaixo ---------- */
+@media (max-width: 860px) {
+  .kanjiContainer {
+    align-items: center;
+  }
+
+  .whySvg {
+    width: 180%;
+    translate: -45% -55%;
+  }
+
+  .whyRight {
+    /* mobile: sem animação de fade (reduced motion pega aqui também) */
+    opacity: 1;
+    translate: 0 0;
+  }
 }
