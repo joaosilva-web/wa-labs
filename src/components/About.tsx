@@ -56,6 +56,8 @@ export function About() {
   const titleRef = useRef<HTMLHeadingElement>(null)
   const factsRef = useRef<HTMLDListElement>(null)
   const whyAreaRef = useRef<HTMLDivElement>(null)
+  const whyStickyRef = useRef<HTMLDivElement>(null)
+  const whySvgRef = useRef<SVGSVGElement>(null)
   const spiralPathRef = useRef<SVGPathElement>(null)
   const spiralGroupRef = useRef<SVGGElement>(null)
   const kanjiRef = useRef<KanjiStrokesHandle>(null)
@@ -168,68 +170,99 @@ export function About() {
     return () => io.disconnect()
   }, [reduced])
 
-  /* --- 7. Bloco "Por que Wa?": --why (0→1) no whyArea --------------- */
-  useViewProgress(whyAreaRef, { varName: '--why', start: 1.0, end: 0.0 })
-
-  /* --- 8. Espiral: comprimento para stroke-dasharray/offset via CSS -- */
+  /* --- 7. Espiral: comprimento em px (recalcula no resize) -----------
+     Com vector-effect: non-scaling-stroke, strokeDasharray e --spiral-len
+     devem estar em pixels de tela, não em unidades do viewBox.           */
   useEffect(() => {
     const path = spiralPathRef.current
-    if (!path) return
-    const len = path.getTotalLength()
-    path.style.setProperty('--spiral-len', String(len))
-    path.style.strokeDasharray = `${len}`
+    const svg = whySvgRef.current
+    if (!path || !svg) return
+    const measure = () => {
+      const userLen = path.getTotalLength()
+      const r = svg.getBoundingClientRect()
+      const vb = svg.viewBox.baseVal
+      const scale = vb && vb.width > 0 ? r.width / vb.width : 1
+      const lenPx = (userLen * scale).toFixed(2)
+      path.style.setProperty('--spiral-len', lenPx)
+      path.style.strokeDasharray = `${lenPx}px`
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
   }, [])
 
-  /* --- 9. Kanji "Por que Wa?": desenha conforme --why vai de 0.55→0.95 */
+  /* --- 8. Por que Wa?: --why, kanji e pulso em um único rAF ----------
+     Desktop: --why é mapeado exatamente à fase presa do sticky.
+       why=0 quando whyArea.top = stickyTop (conteúdo acabou de travar)
+       why=1 quando whyArea.bottom < stickyTop + stickyHeight (prestes a soltar)
+     Mobile: passagem normal (topo a 85% → fundo a 45% da viewport).
+     Tudo (kanji, texto, pulso) é completo em --why ≈ 0.90, deixando
+     ≈10% de folga onde o bloco fica pronto antes de soltar.             */
   useEffect(() => {
-    const kanji = kanjiRef.current
     const whyArea = whyAreaRef.current
-    if (!kanji || !whyArea) return
-    if (reduced) { kanji.drawTo(1); return }
+    const whySticky = whyStickyRef.current
+    const kanji = kanjiRef.current
+    if (!whyArea || !whySticky || !kanji) return
+
+    if (reduced) {
+      whyArea.style.setProperty('--why', '1')
+      kanji.drawTo(1)
+      return () => whyArea.style.removeProperty('--why')
+    }
+
     kanji.init('full')
     let frame = 0
-    const update = () => {
-      frame = 0
-      // lê --why diretamente do elemento para evitar condição de corrida com useViewProgress
-      const r = whyArea.getBoundingClientRect()
-      const vh = window.innerHeight
-      const travel = vh + r.height  // start=1.0, end=0.0
-      const why = travel > 0 ? clamp01((vh - r.top) / travel) : 1
-      kanji.drawTo(clamp01((why - 0.55) / 0.4))
-    }
-    const schedule = () => { if (!frame) frame = requestAnimationFrame(update) }
-    window.addEventListener('scroll', schedule, { passive: true })
-    return () => {
-      cancelAnimationFrame(frame)
-      window.removeEventListener('scroll', schedule)
-    }
-  }, [reduced])
-
-  /* --- 10. Pulso ao completar (--why ≥ 0.98) ------------------------- */
-  useEffect(() => {
-    const whyArea = whyAreaRef.current
-    if (!whyArea || reduced) return
     let pulsed = false
-    let frame = 0
+    let last = ''
+
     const update = () => {
       frame = 0
-      const r = whyArea.getBoundingClientRect()
+      const rArea = whyArea.getBoundingClientRect()
       const vh = window.innerHeight
-      const travel = vh + r.height
-      const why = travel > 0 ? clamp01((vh - r.top) / travel) : 1
-      if (!pulsed && why >= 0.98) {
+      let why: number
+
+      if (window.innerWidth <= 860) {
+        // Mobile: sem sticky, usa passagem normal
+        const travel = (0.85 - 0.45) * vh + rArea.height
+        why = travel > 0 ? clamp01((0.85 * vh - rArea.top) / travel) : 1
+      } else {
+        // Desktop: fase presa do sticky
+        // top do sticky vem de getComputedStyle (browsers resolvem calc() para px)
+        const stickyTop = parseFloat(getComputedStyle(whySticky).top) || 104
+        const H = whySticky.offsetHeight
+        const C = rArea.height
+        const travel = C - H  // scroll percorrido enquanto o bloco está preso
+        why = travel > 0 ? clamp01((stickyTop - rArea.top) / travel) : 1
+      }
+
+      const val = why.toFixed(4)
+      if (val !== last) {
+        last = val
+        whyArea.style.setProperty('--why', val)
+      }
+
+      // Kanji: 0.50 → 0.85 (completo antes de --why = 0.9)
+      kanji.drawTo(clamp01((why - 0.50) / 0.35))
+
+      // Pulso: threshold 0.92 → 8% de folga antes de soltar
+      if (!pulsed && why >= 0.92) {
         pulsed = true
         whyArea.setAttribute('data-pulsed', '')
-      } else if (pulsed && why < 0.93) {
+      } else if (pulsed && why < 0.88) {
         pulsed = false
         whyArea.removeAttribute('data-pulsed')
       }
     }
+
     const schedule = () => { if (!frame) frame = requestAnimationFrame(update) }
+    update()
     window.addEventListener('scroll', schedule, { passive: true })
+    window.addEventListener('resize', schedule)
     return () => {
       cancelAnimationFrame(frame)
       window.removeEventListener('scroll', schedule)
+      window.removeEventListener('resize', schedule)
+      whyArea.style.removeProperty('--why')
     }
   }, [reduced])
 
@@ -307,11 +340,12 @@ export function About() {
 
         {/* ---- Bloco "Por que Wa?" — área tall com sticky ---- */}
         <div ref={whyAreaRef} className={styles.whyArea}>
-          <div className={styles.whySticky}>
+          <div ref={whyStickyRef} className={styles.whySticky}>
 
             {/* SVG combinado: espiral (atrás) + traços do kanji (na frente) */}
             <div className={styles.kanjiContainer}>
               <svg
+                ref={whySvgRef}
                 className={styles.whySvg}
                 viewBox="0 0 100 100"
                 overflow="visible"

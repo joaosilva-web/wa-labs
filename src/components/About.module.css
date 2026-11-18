@@ -312,11 +312,14 @@
 .spiralPath {
   stroke: var(--color-primary);
   opacity: 0.6;
+  /* non-scaling-stroke: strokeWidth="1.5" fica 1.5px reais, independente da escala do SVG.
+     dasharray e --spiral-len são calculados em px pelo JS (getTotalLength × scale). */
+  vector-effect: non-scaling-stroke;
   /*
-   * stroke-dasharray e stroke-dashoffset são definidos via JS (--spiral-len).
-   * Enquanto o JS não roda, a espiral fica invisível (stroke-dasharray 0).
+   * stroke-dasharray e --spiral-len definidos via JS.
+   * * 1px: converte o número adimensional em <length> (necessário com non-scaling-stroke).
    */
-  stroke-dashoffset: calc(var(--spiral-len, 10000) * (1 - clamp(0, calc(var(--why, 0) / 0.6), 1)));
+  stroke-dashoffset: calc(var(--spiral-len, 10000) * (1 - clamp(0, calc(var(--why, 0) / 0.6), 1)) * 1px);
 }
 
 /* Pulso ao completar (data-pulsed no whyArea) */
@@ -347,14 +350,14 @@
   stroke-linejoin: round;
 }
 
-/* Leitura "WA · HARMONIA": aparece quando os traços terminam (--why ≥ 0.9) */
+/* Leitura "WA · HARMONIA": aparece quando os traços terminam (--why 0.80→0.90) */
 .whyReading {
   font-family: var(--font-mono);
   font-size: var(--text-sm);
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: var(--muted);
-  opacity: clamp(0, calc((var(--why, 0) - 0.9) / 0.1), 1);
+  opacity: clamp(0, calc((var(--why, 0) - 0.80) / 0.10), 1);
 }
 
 /* ---------- texto "Por que Wa?" ---------- */
@@ -363,9 +366,9 @@
   flex-direction: column;
   gap: var(--space-4);
   padding-top: var(--space-4);
-  /* fade-in entre --why 0.7 e 1.0 */
-  opacity: clamp(0, calc((var(--why, 0) - 0.7) / 0.3), 1);
-  translate: 0 calc((1 - clamp(0, calc((var(--why, 0) - 0.7) / 0.3), 1)) * 20px);
+  /* fade-in entre --why 0.65 e 0.88 (completo antes de --why = 0.9) */
+  opacity: clamp(0, calc((var(--why, 0) - 0.65) / 0.23), 1);
+  translate: 0 calc((1 - clamp(0, calc((var(--why, 0) - 0.65) / 0.23), 1)) * 20px);
 }
 
 .whyTitle {
