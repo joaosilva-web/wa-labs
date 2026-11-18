@@ -158,7 +158,7 @@
 /* ---------- summary ---------- */
 .summary {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--space-4);
   padding-block: var(--space-6);
   cursor: pointer;
@@ -186,7 +186,7 @@
   border-radius: var(--radius-sm);
 }
 
-/* 問: vira --color-primary no hover */
+/* 問: vira --color-primary no hover; margin-top alinha com a primeira linha da pergunta */
 .questionKanji {
   font-family: var(--font-mono);
   font-size: var(--text-sm);
@@ -194,6 +194,7 @@
   flex: none;
   width: 1.5rem;
   text-align: center;
+  margin-top: 0.15em;
   transition: color 0.2s var(--ease);
 }
 
@@ -202,18 +203,25 @@
   color: var(--color-primary);
 }
 
-/* Pergunta: desliza 8px pra direita no hover */
+/* Pergunta: pode quebrar linha; min-width: 0 permite encolher no flex */
 .question {
   font-family: var(--font-display);
   font-size: var(--text-lg);
   font-weight: 500;
   color: var(--color-text);
   flex: 1;
+  min-width: 0;
   translate: 0 0;
   transition: translate 0.3s var(--ease);
 }
 
-.summary:hover .question,
+/* Deslize de 8px só em dispositivos com hover real (evita "preso" após toque) */
+@media (hover: hover) {
+  .summary:hover .question {
+    translate: 8px 0;
+  }
+}
+
 .summary:focus-visible .question {
   translate: 8px 0;
 }

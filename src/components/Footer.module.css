@@ -99,7 +99,9 @@
   color: var(--muted);
   vertical-align: super;
   line-height: 0;
-  margin-right: 0.4em;
+  /* --roll-lh: 1em → cada dígito ocupa exatamente a própria fonte (0.7em outer),
+     sem aumentar a altura da linha; espaçamento pós-num vem do RollText :not(.word)+.word */
+  --roll-lh: 1em;
 }
 
 .topBtn {
