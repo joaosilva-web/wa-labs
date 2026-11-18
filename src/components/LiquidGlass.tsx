@@ -64,17 +64,19 @@ const RESIZE_DEBOUNCE = 150
  * Fade: nunca ponha opacity < 1 (nem filter/mask/clip-path) neste elemento ou num ancestral.
  * No Chromium isso cria um "backdrop root" e o vidro passa a refratar o nada; faça fade nas camadas.
  *
- * CSS vars de material (podem vir do pai):
- *   --lg-tint           cor sólida do tint  (padrão: branco 6%)
- *   --lg-tint-image     gradiente adicional no tint  (padrão: none)
- *   --lg-edge           força da borda de luz branca  (padrão: 1); ignorada quando --lg-rim está definida
- *   --lg-rim            substitui todo o box-shadow do tint (bordas escuras p/ fundo claro)
- *   --lg-shine          opacidade do reflexo especular  (padrão: 1)
- *   --lg-blur           blur por cima da refração em px  (padrão: valor da prop `blur`)
- *   --lg-saturate       saturação do filtro  (padrão: valor da prop `saturate`)
- *   --lg-brightness     brilho do filtro  (padrão: valor da prop `brightness`)
- *   --lg-fallback-blur  blur do vidro fosco em px  (padrão: valor da prop `fallbackBlur`)
+ * CSS vars de material (podem vir do pai; todas registradas em global.css com @property):
+ *   --lg-tint             cor sólida do tint  (padrão: branco 6%)
+ *   --lg-tint-highlight   cor do gradiente de topo (de var pra transparent; padrão: invisible)
+ *   --lg-shine            opacidade do reflexo especular  (padrão: 1)
+ *   --lg-blur             blur por cima da refração em px  (padrão: valor da prop `blur`)
+ *   --lg-saturate         saturação do filtro  (padrão: valor da prop `saturate`)
+ *   --lg-brightness       brilho do filtro  (padrão: valor da prop `brightness`)
+ *   --lg-fallback-blur    blur do vidro fosco em px  (padrão: valor da prop `fallbackBlur`)
  *   --lg-fallback-saturate  saturação do fosco  (padrão: valor da prop `fallbackSaturate`)
+ *   --lg-rim-outline      cor do contorno de 1px  (padrão: branco 18%)
+ *   --lg-rim-top          cor do fio de luz no topo  (padrão: branco 75%)
+ *   --lg-rim-base         cor da sombra de volume na base  (padrão: transparent)
+ *   --lg-rim-inner        cor do escurecimento junto à borda de cima  (padrão: transparent)
  */
 export const LiquidGlass = forwardRef<HTMLDivElement, Props>(function LiquidGlass(
   {

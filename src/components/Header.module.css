@@ -23,14 +23,13 @@
 
   /* material: branco semi-transparente + gradiente vertical leve */
   --lg-tint: rgb(255 255 255 / 0.25);
-  --lg-tint-image: linear-gradient(to bottom, rgb(255 255 255 / 0.08), rgb(255 255 255 / 0));
+  --lg-tint-highlight: rgb(255 255 255 / 0.08);
 
-  /* borda escura: contorno + fio de luz no topo + sombra de volume na base */
-  --lg-rim:
-    inset 0 0 0 1px rgb(0 0 0 / 0.07),
-    inset 0 1px 0 rgb(255 255 255 / 0.9),
-    inset 0 -8px 14px -10px rgb(0 0 0 / 0.10),
-    inset 0 6px 12px -10px rgb(0 0 0 / 0.06);
+  /* borda escura (tom light): contorno + fio de luz + sombra de volume + escurecimento interno */
+  --lg-rim-outline: rgb(0 0 0 / 0.07);
+  --lg-rim-top:     rgb(255 255 255 / 0.9);
+  --lg-rim-base:    rgb(0 0 0 / 0.10);
+  --lg-rim-inner:   rgb(0 0 0 / 0.06);
 
   --lg-shine: 0.35;
 
@@ -49,9 +48,23 @@
   width: min(100% - 32px, 1200px);
   color: var(--hdr-fg);
   transform: translateX(-50%) translateY(calc(var(--header-hide, 0) * (-100% - 24px)));
+  /* Transição unificada: transform da hero + todas as vars de tom (450ms, --ease).
+     As vars são <color>/<number>/<length> registradas → o navegador interpola. */
   transition:
     transform 0.25s var(--ease),
-    color 0.3s var(--ease);
+    --hdr-fg           0.45s var(--ease),
+    --hdr-muted        0.45s var(--ease),
+    --hdr-hover        0.45s var(--ease),
+    --lg-blur          0.45s var(--ease),
+    --lg-saturate      0.45s var(--ease),
+    --lg-brightness    0.45s var(--ease),
+    --lg-tint          0.45s var(--ease),
+    --lg-tint-highlight 0.45s var(--ease),
+    --lg-shine         0.45s var(--ease),
+    --lg-rim-outline   0.45s var(--ease),
+    --lg-rim-top       0.45s var(--ease),
+    --lg-rim-base      0.45s var(--ease),
+    --lg-rim-inner     0.45s var(--ease);
 }
 
 .header[data-tone='dark'] {
@@ -61,9 +74,13 @@
   /* mais blur e tint escuro: texto branco gigante passando por baixo ficaria ilegível */
   --lg-blur: 3px;
   --lg-tint: color-mix(in srgb, var(--color-inverse-bg) 45%, transparent);
-  --lg-edge: 0.6;
+  --lg-tint-highlight: rgb(255 255 255 / 0);
   --lg-shine: 0.5;
-  --lg-rim: initial;
+  /* borda de luz branca (fundo escuro) */
+  --lg-rim-outline: rgb(255 255 255 / 0.11);
+  --lg-rim-top:     rgb(255 255 255 / 0.45);
+  --lg-rim-base:    transparent;
+  --lg-rim-inner:   transparent;
   --hdr-shadow: 0 8px 24px -8px rgb(0 0 0 / calc(0.25 * var(--hdr-fade)));
 }
 
@@ -73,7 +90,12 @@
   --hdr-hover: color-mix(in srgb, var(--color-on-primary) 60%, transparent);
   --lg-blur: 1px;
   --lg-tint: rgb(255 255 255 / 0.08);
-  --lg-rim: initial;
+  --lg-tint-highlight: rgb(255 255 255 / 0);
+  /* borda de luz branca (fundo verde) */
+  --lg-rim-outline: rgb(255 255 255 / 0.18);
+  --lg-rim-top:     rgb(255 255 255 / 0.75);
+  --lg-rim-base:    transparent;
+  --lg-rim-inner:   transparent;
   --hdr-shadow: 0 8px 24px -8px rgb(0 0 0 / calc(0.25 * var(--hdr-fade)));
 }
 
