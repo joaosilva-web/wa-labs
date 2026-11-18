@@ -1,4 +1,5 @@
-import type { AnchorHTMLAttributes } from 'react'
+import { useRef, type AnchorHTMLAttributes } from 'react'
+import { useGlassShine } from '../hooks/useGlassShine'
 import { RollText } from './RollText'
 import styles from './Button.module.css'
 
@@ -8,8 +9,12 @@ type Props = AnchorHTMLAttributes<HTMLAnchorElement> & {
 }
 
 export function Button({ variant = 'primary', className = '', children, ...rest }: Props) {
+  const ref = useRef<HTMLAnchorElement>(null)
+  // escreve --mx no elemento; o CSS usa isso pro arco de reflexo nos botões sólidos
+  useGlassShine(ref)
+
   return (
-    <a className={`${styles.button} ${styles[variant]} ${className}`} {...rest}>
+    <a ref={ref} className={`${styles.button} ${styles[variant]} ${className}`} {...rest}>
       <RollText>{children}</RollText>
     </a>
   )

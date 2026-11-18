@@ -1,4 +1,5 @@
 import { Contact } from './components/Contact'
+import { FloatingWhatsApp } from './components/FloatingWhatsApp'
 import { Cursor } from './components/Cursor'
 import { Footer } from './components/Footer'
 import { Header } from './components/Header'
@@ -24,6 +25,7 @@ function Site() {
       </main>
       <Footer />
       <Cursor />
+      <FloatingWhatsApp />
       {!isDone && <Preloader />}
     </>
   )
