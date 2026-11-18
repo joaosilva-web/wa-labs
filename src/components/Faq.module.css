@@ -63,10 +63,22 @@
 .title {
   font-family: var(--font-display);
   font-size: clamp(2.25rem, 1rem + 4vw, 5rem);
-  font-weight: 900;
   letter-spacing: -0.04em;
   line-height: 1;
   color: var(--color-text);
+}
+
+.light,
+.heavy {
+  display: block;
+}
+
+.light {
+  font-weight: 200;
+}
+
+.heavy {
+  font-weight: 900;
 }
 
 /* ---------- lista de perguntas ---------- */

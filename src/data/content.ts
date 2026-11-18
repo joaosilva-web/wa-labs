@@ -247,8 +247,11 @@ export type FaqItem = { q: string; a: string }
 export const faq = {
   label: 'Dúvidas',
   aside: 'Perguntas frequentes',
-  title: 'Perguntas frequentes',
-  footer: { text: 'Ficou alguma dúvida?', cta: 'Fale comigo ↗', href: '#contato' },
+  title: [
+    { text: 'Antes de', weight: 'light' as const },
+    { text: 'começar.', weight: 'heavy' as const },
+  ] satisfies TitleText[],
+  footer: { text: 'Ficou alguma dúvida?', cta: 'Fale comigo ↓', href: '#contato' },
   items: [
     {
       q: 'Quanto tempo leva um projeto?',

@@ -38,7 +38,13 @@ export function Faq() {
         <div ref={revealRef} className={styles.body}>
           {/* Título — sticky na desktop */}
           <div className={styles.titleCol} style={{ '--i': 0 } as CSSProperties}>
-            <h2 className={styles.title}>{faq.title}</h2>
+            <h2 className={styles.title}>
+              {faq.title.map((seg, i) => (
+                <span key={i} className={seg.weight === 'light' ? styles.light : styles.heavy}>
+                  {seg.text}
+                </span>
+              ))}
+            </h2>
           </div>
 
           {/* Lista de perguntas */}
