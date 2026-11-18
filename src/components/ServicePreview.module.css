@@ -1,48 +1,97 @@
+/*
+ * Pílula "Liquid Glass".
+ * --w / --h vêm do TSX (o mapa de refração é gerado nesse tamanho).
+ * O JS escreve, por frame: translate (posição), --sx / --sy (esticão) e --angle (direção).
+ *
+ * Opacidade: quem faz fade são as camadas, nunca o .preview. No Chromium um ancestral
+ * com opacity < 1 vira "backdrop root" e o vidro passaria a refratar o nada.
+ */
 .preview {
-  --w: 220px;
-  --h: 110px;
-
   position: fixed;
   top: 0;
   left: 0;
   z-index: 50;
   width: var(--w);
   height: var(--h);
-  /* centrado no cursor: o JS escreve translate3d(x, y) com a posição do mouse */
+  /* centrado no cursor */
   margin: calc(var(--h) / -2) 0 0 calc(var(--w) / -2);
+  border-radius: var(--radius-pill);
   pointer-events: none;
-  opacity: 0;
-  scale: 0.6;
+  /* material líquido: gira pro eixo do movimento, estica, desgira — estica na diagonal também */
+  transform: rotate(var(--angle, 0deg)) scale(var(--sx, 1), var(--sy, 1))
+    rotate(calc(var(--angle, 0deg) * -1));
+  /* saída: encolhe pra 0.8 enquanto as camadas somem */
+  scale: 0.8;
+  box-shadow: 0 10px 30px -6px rgb(0 0 0 / 0);
   transition:
-    opacity 0.25s var(--ease),
-    scale 0.4s var(--ease);
+    scale 0.22s var(--ease),
+    box-shadow 0.22s var(--ease);
 }
 
 .preview[data-visible] {
-  opacity: 1;
   scale: 1;
+  box-shadow: 0 10px 30px -6px rgb(0 0 0 / 0.35);
+  /* entrada: 0.6 → 1 com sobra (overshoot) */
+  animation: enter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-/* mesmo formato da pílula da hero */
-.pill {
-  position: relative;
-  width: 100%;
-  height: 100%;
+@keyframes enter {
+  from {
+    scale: 0.6;
+  }
+}
+
+.defs {
+  position: absolute;
+  width: 0;
+  height: 0;
   overflow: hidden;
-  border-radius: var(--radius-pill);
-  background: var(--color-primary);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-inverse-text) 20%, transparent);
 }
 
-/* corte seco: só o slide ativo aparece */
+.glass,
+.media,
+.tint,
+.shine,
+.content {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-pill);
+  opacity: 0;
+  transition: opacity 0.2s var(--ease);
+}
+
+.preview[data-visible] > :is(.glass, .media, .tint, .shine, .content) {
+  opacity: 1;
+  transition-duration: 0.25s;
+}
+
+/* ---------- vidro ---------- */
+.glass {
+  /* outros navegadores: vidro fosco */
+  -webkit-backdrop-filter: blur(14px) saturate(1.8);
+  backdrop-filter: blur(14px) saturate(1.8);
+}
+
+/* Chromium: lente de verdade (bisel refrata, miolo plano) + blur leve */
+.preview[data-refraction] .glass {
+  -webkit-backdrop-filter: url(#liquid-glass) blur(1.5px) saturate(1.6) brightness(1.06);
+  backdrop-filter: url(#liquid-glass) blur(1.5px) saturate(1.6) brightness(1.06);
+}
+
+/* ---------- mídia (quando o serviço tiver preview.src) ---------- */
+.media {
+  overflow: hidden;
+}
+
 .slide {
   position: absolute;
   inset: 0;
-  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.18s var(--ease);
 }
 
 .slide[data-active] {
-  visibility: visible;
+  opacity: 1;
 }
 
 .slide > :is(img, video) {
@@ -51,27 +100,61 @@
   object-fit: cover;
 }
 
-.placeholder {
+/* ---------- tint + borda de luz ---------- */
+/* os brancos daqui e do .shine são cor de MATERIAL (luz no vidro), não cor de interface */
+.tint {
+  background: rgb(255 255 255 / 0.06);
+  box-shadow:
+    inset 0 1px 1px rgb(255 255 255 / 0.75),
+    inset 0 -1px 1px rgb(255 255 255 / 0.25),
+    inset 0 0 0 1px rgb(255 255 255 / 0.18);
+}
+
+/* ---------- reflexo especular ---------- */
+.shine {
+  overflow: hidden;
+}
+
+/* arco na metade de cima; inclina um pouco pro lado do movimento (até ±10° no esticão máximo) */
+.shine::before {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 9%;
+  right: 9%;
+  height: 50%;
+  border-radius: 50% 50% 50% 50% / 100% 100% 30% 30%;
+  background: linear-gradient(to bottom, rgb(255 255 255 / 0.45), rgb(255 255 255 / 0));
+  transform-origin: 50% 100%;
+  rotate: calc(cos(var(--angle, 0deg)) * (var(--sx, 1) - 1) * -100deg);
+}
+
+/* ---------- kanji gravado no vidro ---------- */
+.content {
   display: grid;
   place-items: center;
-  width: 100%;
-  height: 100%;
+}
+
+.kanji {
+  grid-area: 1 / 1;
   font-family: var(--font-display);
   font-size: 3.25rem;
   font-weight: 700;
   line-height: 1;
   color: var(--color-on-primary);
+  text-shadow: 0 1px 0 rgb(255 255 255 / 0.35);
+  /* troca de serviço: o anterior sai desfocando e encolhendo, o novo entra ao contrário */
+  opacity: 0;
+  scale: 0.85;
+  filter: blur(6px);
+  transition:
+    opacity 0.18s var(--ease),
+    scale 0.18s var(--ease),
+    filter 0.18s var(--ease);
 }
 
-/* gradientes da paleta (o kanji fica sempre sobre a parte clara) */
-.tone0 {
-  background: radial-gradient(circle at 50% 50%, var(--moegi) 0 35%, var(--kaki) 100%);
-}
-
-.tone1 {
-  background: radial-gradient(circle at 50% 50%, var(--moegi) 0 30%, var(--nibi) 100%);
-}
-
-.tone2 {
-  background: linear-gradient(120deg, var(--kaki), var(--moegi) 45% 55%, var(--kaki));
+.kanji[data-active] {
+  opacity: 1;
+  scale: 1;
+  filter: blur(0);
 }
