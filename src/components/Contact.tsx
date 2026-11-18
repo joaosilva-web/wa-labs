@@ -21,7 +21,8 @@ export function Contact() {
   const [message, setMessage] = useState('')
   const [nameError, setNameError] = useState('')
   const [messageError, setMessageError] = useState('')
-  const [copied, setCopied] = useState(false)
+  const [copyState, setCopyState] = useState<'idle' | 'ok' | 'err'>('idle')
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const [liveMsg, setLiveMsg] = useState('')
 
   const maringaTime = useClock('America/Sao_Paulo', { seconds: false })
@@ -52,15 +53,20 @@ export function Contact() {
     return () => io.disconnect()
   }, [reduced])
 
+  // Limpa o timer ao desmontar
+  useEffect(() => () => { if (copyTimerRef.current) clearTimeout(copyTimerRef.current) }, [])
+
   const handleCopy = async () => {
+    if (copyTimerRef.current) clearTimeout(copyTimerRef.current)
     try {
       await navigator.clipboard.writeText(contact.email)
-      setCopied(true)
+      setCopyState('ok')
       setLiveMsg('E-mail copiado!')
-      setTimeout(() => { setCopied(false); setLiveMsg('') }, 2000)
     } catch {
-      // clipboard pode estar indisponível (ex.: HTTP sem permissão); ignora silenciosamente
+      setCopyState('err')
+      setLiveMsg('Não foi possível copiar')
     }
+    copyTimerRef.current = setTimeout(() => { setCopyState('idle'); setLiveMsg('') }, 2000)
   }
 
   const buildText = () =>
@@ -146,7 +152,7 @@ export function Contact() {
                       className={styles.copyBtn}
                       onClick={handleCopy}
                     >
-                      {copied ? 'Copiado ✓' : 'Copiar'}
+                      {copyState === 'ok' ? 'Copiado ✓' : copyState === 'err' ? 'Não foi possível copiar' : 'Copiar'}
                     </button>
                   )}
                 </li>
