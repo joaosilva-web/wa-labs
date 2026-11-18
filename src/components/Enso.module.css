@@ -1,11 +1,15 @@
-/* --enso (0 → 1) vem da seção (useViewProgress); --len é o comprimento do traço-guia */
+/* --enso (0 → 1) vem do trilho do Manifesto; --len é o comprimento do traço-guia */
 .enso {
   display: block;
   overflow: visible;
 }
 
-.brush {
-  fill: var(--color-primary);
+/* as cerdas do pincel (espessura e opacidade vêm de ensoBrush.ts) */
+.strands {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-linecap: butt;
+  stroke-linejoin: round;
 }
 
 /* traço-guia da máscara: branco revela, butt pra não "vazar" um ponto em 0 */
@@ -15,10 +19,4 @@
   stroke-linecap: butt;
   stroke-linejoin: round;
   stroke-dashoffset: calc(var(--len, 0) * (1 - var(--enso, 0)) * 1px);
-}
-
-/* o pincel sai do papel: um pontinho no fim, só quando o traço termina */
-.tip {
-  fill: var(--color-primary);
-  opacity: clamp(0, calc((var(--enso, 0) - 0.97) * 34), 1);
 }

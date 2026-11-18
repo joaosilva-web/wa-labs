@@ -130,7 +130,8 @@
   height: auto;
   /* ancorado à esquerda e parcialmente pra fora: longe do parágrafo (à direita) */
   margin-left: calc(var(--enso-size) * -0.3);
-  opacity: 0.35;
+  /* cerdas finas: 0.45 mostra a textura sem disputar com o texto e o destaque */
+  opacity: 0.45;
   /* gira devagar até a posição final enquanto se desenha; em 1 a rotação é 0 */
   rotate: calc((1 - var(--enso)) * -24deg);
 }
