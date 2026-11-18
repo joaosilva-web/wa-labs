@@ -197,9 +197,26 @@ export const process = [
   },
 ]
 
+const _whatsapp = 'https://wa.me/5545999505463'
+const _email = 'contato@walabs.dev' // TODO: trocar pelo e-mail real
+
 export const contact = {
-  title: 'Vamos construir algo juntos?',
-  subtitle: 'Conte sua ideia e respondemos em até 1 dia útil.',
-  email: 'contato@walabs.dev', // TODO: trocar pelo e-mail real
-  whatsapp: 'https://wa.me/5545999505463',
+  label: 'Contato',
+  aside: 'Resposta em até 1 dia útil',
+  title: [
+    { text: 'Vamos construir', weight: 'light' as const },
+    { text: 'algo juntos?', weight: 'heavy' as const },
+  ],
+  lead: 'Conte o que você precisa. A gente responde com perguntas certas, não com proposta genérica.',
+  channels: [
+    { label: 'WhatsApp', value: '(45) 99950-5463', href: _whatsapp },
+    { label: 'E-mail', value: _email, href: `mailto:${_email}`, copy: true as const },
+    { label: 'GitHub', value: '@joaosilva-web', href: 'https://github.com/joaosilva-web' },
+    // Instagram / LinkedIn: deixar comentado como exemplo; canal sem href não renderiza
+    // { label: 'Instagram', value: '@walabs' },
+  ],
+  projectTypes: ['Site', 'Sistema web', 'App mobile', 'Outro'],
+  budgets: ['Até R$ 2 mil', 'R$ 2–5 mil', 'R$ 5–10 mil', 'Acima de R$ 10 mil', 'Ainda não sei'], // TODO: revisar faixas
+  email: _email,
+  whatsapp: _whatsapp,
 }
