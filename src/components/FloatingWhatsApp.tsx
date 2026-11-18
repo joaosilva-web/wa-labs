@@ -51,7 +51,21 @@ export function FloatingWhatsApp() {
     return () => io.disconnect()
   }, [])
 
-  const shown = isDone && heroGone && !contactVisible
+  const [footerVisible, setFooterVisible] = useState(false)
+
+  // some sobre o Footer também
+  useEffect(() => {
+    const footer = document.getElementById('rodape')
+    if (!footer) return
+    const io = new IntersectionObserver(
+      ([e]) => setFooterVisible(e.isIntersecting),
+      { rootMargin: '0px 0px -10% 0px' },
+    )
+    io.observe(footer)
+    return () => io.disconnect()
+  }, [])
+
+  const shown = isDone && heroGone && !contactVisible && !footerVisible
 
   return (
     <div
