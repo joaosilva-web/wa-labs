@@ -58,8 +58,9 @@
   --hdr-fg: var(--color-inverse-text);
   --hdr-muted: color-mix(in srgb, var(--color-inverse-text) 65%, transparent);
   --hdr-hover: var(--color-primary);
-  --lg-blur: 1px;
-  --lg-tint: rgb(255 255 255 / 0.06);
+  /* mais blur e tint escuro: texto branco gigante passando por baixo ficaria ilegível */
+  --lg-blur: 3px;
+  --lg-tint: color-mix(in srgb, var(--color-inverse-bg) 45%, transparent);
   --lg-edge: 0.6;
   --lg-shine: 0.5;
   --lg-rim: initial;

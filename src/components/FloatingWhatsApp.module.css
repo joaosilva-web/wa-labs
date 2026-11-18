@@ -28,8 +28,8 @@
 }
 
 .wrapper[data-tone='dark'] {
-  --lg-blur: 1px;
-  --lg-tint: rgb(255 255 255 / 0.06);
+  --lg-blur: 3px;
+  --lg-tint: color-mix(in srgb, var(--color-inverse-bg) 45%, transparent);
   --lg-edge: 0.6;
   --lg-shine: 0.5;
   --lg-rim: initial;
@@ -56,11 +56,16 @@
   z-index: 9; /* abaixo do header (z-index: 10) */
   pointer-events: none;
   scale: 0.6;
-  transition: scale 0.2s var(--ease);
+  /* visibility espera o fade das camadas internas (0.3s) antes de sumir */
+  visibility: hidden;
+  transition: scale 0.2s var(--ease), visibility 0s linear 0.3s;
 }
 
 .wrapper[data-shown] {
   pointer-events: auto;
+  visibility: visible;
+  /* visibilidade imediata ao aparecer; scale fica pro spring */
+  transition: scale 0.2s var(--ease), visibility 0s linear 0s;
   animation: fab-spring-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
@@ -99,6 +104,11 @@
     box-shadow 0.3s var(--ease);
   color: var(--fg);
   overflow: hidden; /* clip do label na animação de expansão */
+}
+
+/* quando escondido, remove o box-shadow pra não aparecer como fantasma */
+.wrapper:not([data-shown]) .fab {
+  box-shadow: none;
 }
 
 .wrapper[data-expanded] .fab {
@@ -152,10 +162,11 @@
 
 /* ---------- indicador "online" ---------- */
 /* os brancos daqui são cor de MATERIAL, não de interface */
+/* fica fora do LiquidGlass (.fab tem overflow: hidden) → filho direto do .wrapper */
 .dot {
   position: absolute;
-  top: 4px;
-  right: 4px;
+  top: 2px;
+  right: 2px;
   width: 10px;
   height: 10px;
   border-radius: 50%;
@@ -163,5 +174,11 @@
   box-shadow: 0 0 0 2px var(--dot-border);
   pointer-events: none;
   z-index: 2;
-  transition: box-shadow 0.3s var(--ease);
+  /* fade junto com o botão: opacity na bolinha é seguro (não é ancestral do vidro) */
+  opacity: 0;
+  transition: box-shadow 0.3s var(--ease), opacity 0.3s var(--ease);
+}
+
+.wrapper[data-shown] .dot {
+  opacity: 1;
 }

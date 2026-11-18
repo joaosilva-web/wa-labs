@@ -99,10 +99,10 @@ export function FloatingWhatsApp() {
             Fale com a gente
           </span>
         </a>
-
-        {/* indicador "online" */}
-        <span className={styles.dot} aria-hidden="true" />
       </LiquidGlass>
+
+      {/* indicador "online" — fora do LiquidGlass (overflow: hidden cortaria) */}
+      <span className={styles.dot} aria-hidden="true" />
     </div>
   )
 }

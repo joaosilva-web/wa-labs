@@ -57,7 +57,7 @@
   flex-direction: column;
   /* a composição inteira (meta → título → rodapé) cabe na primeira tela */
   height: 100%;
-  padding-bottom: var(--space-6);
+  padding-bottom: clamp(var(--space-3), 2svh, var(--space-6));
 }
 
 /* Texto mono compartilhado */
@@ -111,7 +111,7 @@
 /* ---------- 2. Introdução ---------- */
 .introRow {
   position: relative;
-  padding-top: var(--space-6);
+  padding-top: clamp(var(--space-3), 2svh, var(--space-6));
 }
 
 .intro {
@@ -138,14 +138,14 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding-block: var(--space-4) var(--space-6);
+  padding-block: clamp(var(--space-2), 1.5svh, var(--space-4)) clamp(var(--space-3), 2svh, var(--space-6));
 }
 
 .title {
   /* ~10.5em = largura da linha 1 ("Software" + pílula + "feito");
      a folga é pra "feito" engordar com o cursor sem encostar na borda */
   /* largura (vw) E altura (svh) da tela; o cqi garante que a linha 1 nunca estoura */
-  font-size: min(clamp(2.75rem, min(9vw, 13svh), 10rem), 100cqi / 11.2);
+  font-size: min(clamp(2.75rem, min(9vw, 11.5svh), 10rem), 100cqi / 11.2);
   line-height: 0.95;
   letter-spacing: -0.045em;
   font-weight: 200;
@@ -231,7 +231,7 @@
   justify-content: space-between;
   align-items: flex-end;
   gap: var(--space-8);
-  padding-top: var(--space-6);
+  padding-top: clamp(var(--space-3), 2svh, var(--space-6));
   border-top: 1px solid var(--color-border);
 }
 
@@ -320,7 +320,7 @@
   }
 
   .title {
-    font-size: min(clamp(2.75rem, min(9vw, 13svh), 10rem), 100cqi / 10.9);
+    font-size: min(clamp(2.75rem, min(9vw, 11.5svh), 10rem), 100cqi / 10.9);
   }
 
   .vertical {
@@ -361,7 +361,37 @@
 
   .title {
     /* sem a pílula, a linha 1 fica mais curta */
-    font-size: min(clamp(2.75rem, min(9vw, 13svh), 10rem), 100cqi / 9);
+    font-size: min(clamp(2.75rem, min(9vw, 11.5svh), 10rem), 100cqi / 9);
+  }
+}
+
+/* ---------- Telas baixas (notebook landscape) ---------- */
+@media (min-width: 861px) and (max-height: 720px) {
+  /* intro mono (canto sup. esq.) é redundante com a barra de metadados;
+     o .introRow continua como âncora do .vertical (posição absoluta) */
+  .intro {
+    display: none;
+  }
+
+  .introRow {
+    padding-top: 0;
+  }
+
+  /* subtítulo menor + max-width maior → cabe em 2 linhas */
+  .subtitle {
+    font-size: var(--text-lg);
+    max-width: 40ch;
+  }
+
+  /* menos espaço entre o divisor e o rodapé */
+  .footer {
+    padding-top: var(--space-4);
+  }
+
+  /* rótulo vertical menor */
+  .vertical {
+    font-size: 0.65rem;
+    letter-spacing: 0.25em;
   }
 }
 
