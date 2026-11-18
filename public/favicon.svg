@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
-  <!-- Placeholder: substituir pelo 和 desenhado à mão -->
-  <rect width="64" height="64" rx="14" fill="#333333"/>
-  <text x="32" y="45" font-size="38" text-anchor="middle" fill="#AACF53" font-family="sans-serif" font-weight="700">和</text>
+  <!-- Placeholder: substituir pelo 和 desenhado à mão (mesmo visual do logo do header) -->
+  <rect width="64" height="64" rx="14" fill="#AACF53"/>
+  <text x="32" y="45" font-size="38" text-anchor="middle" fill="#333333" font-family="'Noto Sans CJK JP','Hiragino Sans','Yu Gothic',sans-serif" font-weight="900">和</text>
 </svg>
