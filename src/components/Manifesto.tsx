@@ -23,7 +23,7 @@ export function Manifesto() {
   useViewProgress(paragraphRef, { varName: '--enso-p', targetRef: ensoTrackRef })
 
   return (
-    <section id="manifesto" className={styles.manifesto}>
+    <section id="manifesto" className={styles.manifesto} data-tone="dark">
       {/* trilho da altura da seção: o ensō fica sticky no centro da tela enquanto ela passa */}
       <div
         ref={ensoTrackRef}

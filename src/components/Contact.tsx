@@ -4,9 +4,9 @@ import styles from './Contact.module.css'
 
 export function Contact() {
   return (
-    <section id="contato" className="section">
+    <section id="contato" className="section" data-tone="light">
       <div className="container">
-        <div className={styles.box}>
+        <div className={styles.box} data-tone="primary">
           <h2 className={styles.title}>{contact.title}</h2>
           <p className={styles.subtitle}>{contact.subtitle}</p>
           <div className={styles.actions}>
