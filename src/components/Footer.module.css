@@ -145,7 +145,8 @@
 .brand {
   font-family: var(--font-display);
   font-weight: 900;
-  /* ~100vw / ~5.8 letras-em; overflow: clip no footer corta qualquer excesso e a base */
+  /* font-size é definido pelo useEffect em Footer.tsx (medição real do texto);
+     o valor aqui é só um fallback pra antes do JS rodar */
   font-size: calc(100vw / 5.8);
   line-height: 0.88;
   white-space: nowrap;

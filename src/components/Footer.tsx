@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { contact, nav, sections, type SectionId } from '../data/content'
 import { REDUCED_MOTION, useMediaQuery } from '../hooks/useMediaQuery'
 import { useProximityWeight } from '../hooks/useProximityWeight'
@@ -16,9 +16,33 @@ export function Footer() {
   // peso variável por proximidade nas letras da marca gigante (300 → 900)
   useProximityWeight(brandRef, { min: 300, max: 900 })
 
+  // Mede a largura natural do texto a 100px e ajusta o font-size para preencher
+  // exatamente 100vw. Remove a necessidade do divisor mágico no CSS.
+  useEffect(() => {
+    const el = brandRef.current
+    if (!el) return
+    const fit = () => {
+      el.style.fontSize = '100px'
+      el.style.width = 'max-content'
+      const rect = el.getBoundingClientRect()
+      const pl = parseFloat(getComputedStyle(el).paddingLeft)
+      const textWidth = rect.width - pl - parseFloat(getComputedStyle(el).paddingRight)
+      el.style.width = ''
+      // texto preenche de paddingLeft até a borda direita do viewport; o resto é clipado
+      el.style.fontSize = `${((window.innerWidth - pl) / textWidth) * 100}px`
+    }
+    fit()
+    const ro = new ResizeObserver(fit)
+    ro.observe(document.documentElement)
+    return () => ro.disconnect()
+  }, [])
+
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: reduced ? 'instant' : 'smooth' })
   }
+
+  // Canais sem href são decorativos e não renderizam link
+  const channels = contact.channels.filter((ch) => ch.href)
 
   return (
     <footer id="rodape" className={styles.footer} data-tone="primary">
@@ -56,7 +80,7 @@ export function Footer() {
           <div className={styles.col}>
             <p className={styles.colLabel}>Contato</p>
             <ul className={styles.colLinks}>
-              {contact.channels.map((ch) => (
+              {channels.map((ch) => (
                 <li key={ch.label}>
                   <a
                     href={ch.href}

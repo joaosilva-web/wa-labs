@@ -10,8 +10,8 @@ import styles from './Contact.module.css'
 const WA_NUMBER = contact.whatsapp.replace('https://wa.me/', '')
 
 export function Contact() {
-  const formRef = useRef<HTMLFormElement>(null)
-  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const nameInputRef = useRef<HTMLInputElement>(null)
+  const msgRef = useRef<HTMLTextAreaElement>(null)
   const revealRef = useRef<HTMLDivElement>(null)
   const reduced = useMediaQuery(REDUCED_MOTION)
 
@@ -29,7 +29,7 @@ export function Contact() {
 
   // auto-resize textarea
   useEffect(() => {
-    const ta = textareaRef.current
+    const ta = msgRef.current
     if (!ta) return
     ta.style.height = 'auto'
     ta.style.height = `${ta.scrollHeight}px`
@@ -53,10 +53,14 @@ export function Contact() {
   }, [reduced])
 
   const handleCopy = async () => {
-    await navigator.clipboard.writeText(contact.email)
-    setCopied(true)
-    setLiveMsg('E-mail copiado!')
-    setTimeout(() => { setCopied(false); setLiveMsg('') }, 2000)
+    try {
+      await navigator.clipboard.writeText(contact.email)
+      setCopied(true)
+      setLiveMsg('E-mail copiado!')
+      setTimeout(() => { setCopied(false); setLiveMsg('') }, 2000)
+    } catch {
+      // clipboard pode estar indisponível (ex.: HTTP sem permissão); ignora silenciosamente
+    }
   }
 
   const buildText = () =>
@@ -69,26 +73,23 @@ export function Contact() {
     ].join('\n')
 
   const handleSend = () => {
-    let hasError = false
-    if (!name.trim()) { setNameError('Por favor, informe seu nome.'); hasError = true }
-    else setNameError('')
-    if (!message.trim()) { setMessageError('Por favor, escreva sua mensagem.'); hasError = true }
-    else setMessageError('')
+    const nameOk = !!name.trim()
+    const msgOk = !!message.trim()
 
-    if (hasError) {
-      const form = formRef.current
-      if (form) {
-        const invalid = form.querySelector('[aria-invalid="true"]') as HTMLElement | null
-        invalid?.focus()
-      }
-      return
-    }
+    setNameError(nameOk ? '' : 'Por favor, informe seu nome.')
+    setMessageError(msgOk ? '' : 'Por favor, escreva sua mensagem.')
+
+    if (!nameOk) { nameInputRef.current?.focus(); return }
+    if (!msgOk)  { msgRef.current?.focus(); return }
 
     const text = buildText()
     window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`, '_blank', 'noopener,noreferrer')
   }
 
   const mailtoHref = `mailto:${contact.email}?subject=${encodeURIComponent(`Novo projeto — ${projectType || 'a definir'}`)}&body=${encodeURIComponent(buildText())}`
+
+  // Canais sem href são decorativos (ex.: futura entrada de Instagram sem link)
+  const channels = contact.channels.filter((ch) => ch.href)
 
   return (
     <section id="contato" className={styles.section} data-tone="dark">
@@ -120,7 +121,7 @@ export function Contact() {
             </p>
 
             <ul className={styles.channels}>
-              {contact.channels.map((ch, i) => (
+              {channels.map((ch, i) => (
                 <li
                   key={ch.label}
                   className={styles.channel}
@@ -154,7 +155,7 @@ export function Contact() {
 
             <div
               className={styles.clocks}
-              style={{ '--i': contact.channels.length + 1 } as CSSProperties}
+              style={{ '--i': channels.length + 1 } as CSSProperties}
             >
               <span className={styles.clock}>
                 MARINGÁ <span className={styles.clockTime}>{maringaTime}</span>
@@ -167,7 +168,6 @@ export function Contact() {
 
           {/* Coluna direita: formulário */}
           <form
-            ref={formRef}
             className={styles.form}
             onSubmit={(e: FormEvent) => { e.preventDefault(); handleSend() }}
             noValidate
@@ -178,6 +178,7 @@ export function Contact() {
                 Nome
               </label>
               <input
+                ref={nameInputRef}
                 id="contact-name"
                 type="text"
                 className={styles.input}
@@ -242,7 +243,7 @@ export function Contact() {
               </label>
               <textarea
                 id="contact-message"
-                ref={textareaRef}
+                ref={msgRef}
                 className={`${styles.input} ${styles.textarea}`}
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
@@ -260,10 +261,7 @@ export function Contact() {
 
             {/* Enviar */}
             <div className={styles.submitRow} style={{ '--i': 5 } as CSSProperties}>
-              <Button
-                variant="primary"
-                onClick={(e) => { e.preventDefault(); handleSend() }}
-              >
+              <Button as="button" type="submit" variant="primary">
                 Enviar pelo WhatsApp ↗
               </Button>
               <a href={mailtoHref} className={styles.mailtoLink}>
