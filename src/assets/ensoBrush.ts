@@ -155,5 +155,15 @@ function buildSpine(overrun = 0.06) {
   return `M ${pts.join(' L ')}`
 }
 
-export const ENSO_STRANDS = buildStrands()
+/** Linha central usada na máscara que revela o traço — calculada na carga (barato). */
 export const ENSO_SPINE = buildSpine()
+
+/**
+ * Cerdas do ensō — calculadas na primeira chamada e cacheadas.
+ * Chame de requestIdleCallback / setTimeout para não bloquear o thread principal.
+ */
+let _cache: BrushSegment[] | null = null
+export function getEnsoStrands(): BrushSegment[] {
+  if (!_cache) _cache = buildStrands()
+  return _cache
+}
