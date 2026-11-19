@@ -1,14 +1,128 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type FocusEvent } from 'react'
 import { process, processSection as copy, sections } from '../data/content'
 import { scrollToY } from '../lenis'
-import { REDUCED_MOTION, useMediaQuery } from '../hooks/useMediaQuery'
+import { FINE_POINTER, REDUCED_MOTION, useMediaQuery } from '../hooks/useMediaQuery'
+import { useCardTilt } from '../hooks/useCardTilt'
 import { useScrollProgress } from '../hooks/useScrollProgress'
 import { useViewProgress } from '../hooks/useViewProgress'
+import { LiquidGlass } from './LiquidGlass'
 import { SectionMeta } from './SectionMeta'
 import styles from './Process.module.css'
 
 const pad = (n: number) => String(n).padStart(2, '0')
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n))
+
+/* ---------------------------------------------------------------
+ * StepItem — subcomponente isolado para que cada etapa tenha seus
+ * próprios hooks de tilt (número e pílula independentes).
+ * ------------------------------------------------------------- */
+type StepItemProps = {
+  item: (typeof process)[number]
+  index: number
+  isActive: boolean
+  pinned: boolean
+  scrolling: boolean
+}
+
+function StepItem({ item, isActive, pinned, scrolling }: StepItemProps) {
+  const fine = useMediaQuery(FINE_POINTER)
+  const reduced = useMediaQuery(REDUCED_MOTION)
+
+  // Mantém o vidro montado enquanto --active transiciona de volta a 0 (~600ms)
+  const wasActiveRef = useRef(false)
+  const [showGlass, setShowGlass] = useState(false)
+
+  useEffect(() => {
+    if (!pinned) {
+      // Mobile/reduced: nunca mostra vidro
+      setShowGlass(false)
+      wasActiveRef.current = false
+      return
+    }
+    if (isActive) {
+      wasActiveRef.current = true
+      setShowGlass(true)
+    } else if (wasActiveRef.current) {
+      const t = setTimeout(() => {
+        wasActiveRef.current = false
+        setShowGlass(false)
+      }, 650)
+      return () => clearTimeout(t)
+    }
+  }, [isActive, pinned])
+
+  const numberRef = useRef<HTMLDivElement>(null)
+  const pillRef = useRef<HTMLDivElement>(null)
+
+  const tiltOn = showGlass && !reduced
+  useCardTilt(numberRef, { enabled: tiltOn })
+  useCardTilt(pillRef, { enabled: tiltOn, maxRY: 8, maxRX: 6 })
+
+  return (
+    <li
+      className={styles.step}
+      data-active={!pinned || isActive || undefined}
+    >
+      {/* Número gigante */}
+      <div ref={numberRef} className={styles.numberWrap}>
+        <div className={styles.numberTiltInner}>
+          <span className={styles.number} aria-hidden="true">
+            {item.step}
+          </span>
+          {showGlass && (
+            <span className={styles.numberGlass} aria-hidden="true">
+              {item.step}
+            </span>
+          )}
+          {showGlass && fine && !reduced && (
+            <div className={styles.numberGlare} aria-hidden="true" />
+          )}
+        </div>
+      </div>
+
+      {/* Kanji + leitura */}
+      <div className={styles.kanjiRow}>
+        <div ref={pillRef} className={styles.pillTiltOuter}>
+          <div className={styles.pillTiltInner}>
+            {showGlass ? (
+              <LiquidGlass
+                className={styles.pillGlass}
+                bevel={48}
+                scale={28}
+                refraction={!scrolling}
+              >
+                <span className={styles.kanji}>{item.kanji}</span>
+              </LiquidGlass>
+            ) : (
+              <span className={styles.pill} aria-hidden="true">
+                <span className={styles.kanji}>{item.kanji}</span>
+              </span>
+            )}
+          </div>
+        </div>
+        <span className={styles.reading}>
+          <span lang="ja-Latn">{item.reading}</span> · {item.meaning}
+        </span>
+      </div>
+
+      {/* Título + descrição + entregáveis */}
+      <div className={styles.body}>
+        <div>
+          <h3 className={styles.stepTitle}>
+            <span className={styles.srOnly}>{item.step}. </span>
+            {item.title}
+          </h3>
+          <p className={styles.description}>{item.description}</p>
+        </div>
+        <ul className={styles.deliverables}>
+          {item.deliverables.map((d) => (
+            <li key={d}>{d}</li>
+          ))}
+        </ul>
+      </div>
+    </li>
+  )
+}
 
 /** O trilho chega ao fim em 94% do trajeto: o último trecho segura a última etapa inteira na tela. */
 const HOLD = 0.94
@@ -43,6 +157,11 @@ export function Process() {
   const progress = useRef(0)
   const activeRef = useRef(0)
   const [active, setActive] = useState(0)
+
+  // Rastrea se o trilho está se movendo (debounce 150ms) → pílula usa vidro fosco durante o scroll
+  const scrollingRef = useRef(false)
+  const scrollTimerRef = useRef(0)
+  const [scrolling, setScrolling] = useState(false)
 
   const total = process.length
 
@@ -108,6 +227,16 @@ export function Process() {
       progress.current = p
       sticky.style.setProperty('--p', p.toFixed(4))
       pickActive(p)
+      // Debounce: scroll ativo → pílula usa frosted; parado → refração completa
+      if (!scrollingRef.current) {
+        scrollingRef.current = true
+        setScrolling(true)
+      }
+      clearTimeout(scrollTimerRef.current)
+      scrollTimerRef.current = window.setTimeout(() => {
+        scrollingRef.current = false
+        setScrolling(false)
+      }, 150)
     },
     { pinnedRef: stickyRef, enabled: pinned },
   )
@@ -184,39 +313,14 @@ export function Process() {
 
             <ol ref={listRef} className={styles.steps} onFocus={onFocus}>
               {process.map((item, i) => (
-                <li
+                <StepItem
                   key={item.step}
-                  className={styles.step}
-                  data-active={!pinned || i === active || undefined}
-                >
-                  <span className={styles.number} aria-hidden="true">
-                    {item.step}
-                  </span>
-
-                  <div className={styles.kanjiRow}>
-                    <span className={styles.pill} aria-hidden="true">
-                      <span className={styles.kanji}>{item.kanji}</span>
-                    </span>
-                    <span className={styles.reading}>
-                      <span lang="ja-Latn">{item.reading}</span> · {item.meaning}
-                    </span>
-                  </div>
-
-                  <div className={styles.body}>
-                    <div>
-                      <h3 className={styles.stepTitle}>
-                        <span className={styles.srOnly}>{item.step}. </span>
-                        {item.title}
-                      </h3>
-                      <p className={styles.description}>{item.description}</p>
-                    </div>
-                    <ul className={styles.deliverables}>
-                      {item.deliverables.map((d) => (
-                        <li key={d}>{d}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </li>
+                  item={item}
+                  index={i}
+                  isActive={i === active}
+                  pinned={pinned}
+                  scrolling={scrolling}
+                />
               ))}
             </ol>
           </div>

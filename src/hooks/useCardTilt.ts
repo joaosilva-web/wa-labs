@@ -47,6 +47,12 @@ type Options = {
    * Chamado no máximo a cada RIPPLE_EVERY frames, só enquanto muda; termina sempre em 0.
    */
   onRipple?: (amount: number) => void
+  /** false desliga o efeito (limpa as vars do elemento). */
+  enabled?: boolean
+  /** Inclinação máxima em Y (graus). Padrão: MAX_RY (10). */
+  maxRY?: number
+  /** Inclinação máxima em X (graus). Padrão: MAX_RX (8). */
+  maxRX?: number
 }
 
 /**
@@ -65,7 +71,7 @@ type Options = {
  * Só com mouse/trackpad. Com reduced motion não inclina: --tilt vai a 1/0 na hora.
  * Mede a caixa do próprio `ref` (sem transform): ponha a rotação num filho, não nele.
  */
-export function useCardTilt(ref: RefObject<HTMLElement | null>, { onRipple }: Options = {}) {
+export function useCardTilt(ref: RefObject<HTMLElement | null>, { onRipple, enabled = true, maxRY = MAX_RY, maxRX = MAX_RX }: Options = {}) {
   const fine = useMediaQuery(FINE_POINTER)
   const reduced = useMediaQuery(REDUCED_MOTION)
   // callback numa ref: trocar a função não reinicia o efeito
@@ -76,7 +82,7 @@ export function useCardTilt(ref: RefObject<HTMLElement | null>, { onRipple }: Op
 
   useEffect(() => {
     const el = ref.current
-    if (!fine || !el) return
+    if (!fine || !el || !enabled) return
 
     const write = (rx: number, ry: number, tilt: number) => {
       el.style.setProperty('--rx', rx.toFixed(3))
@@ -220,8 +226,8 @@ export function useCardTilt(ref: RefObject<HTMLElement | null>, { onRipple }: Op
         g.y = gTarget.y
         stretch = stretchVel = 0
       }
-      target.ry = nx * MAX_RY
-      target.rx = -ny * MAX_RX
+      target.ry = nx * maxRY
+      target.rx = -ny * maxRX
       hovering = true
       start()
     }
@@ -243,7 +249,7 @@ export function useCardTilt(ref: RefObject<HTMLElement | null>, { onRipple }: Op
       clear(el)
       if (rippleSent) rippleRef.current?.(0)
     }
-  }, [ref, fine, reduced])
+  }, [ref, fine, reduced, enabled, maxRY, maxRX])
 
   return fine
 }
