@@ -10,13 +10,18 @@ const REDUCED = '(prefers-reduced-motion: reduce)'
  * - `data-reveal-once` — revela uma vez, sem saída (comportamento legado)
  * - `data-exit="top"`  — estado de saída animada pelo topo
  *
- * Lógica do IntersectionObserver (-15% topo / -8% rodapé):
- *   · entrou na faixa → data-revealed (entrada, 900ms)
- *   · saiu pelo topo → remove data-revealed, adiciona data-exit="top" (saída, 500ms)
- *   · saiu pelo rodapé (rolando pra cima) → oculta instantaneamente, sem animação
+ * Dois IntersectionObservers:
+ *   io      (-15% topo / -8% rodapé) — detecta entrada e saída pelo topo
+ *   ioBottom (0px, viewport real)    — detecta quando o elemento saiu
+ *                                      completamente por baixo da tela
+ *
+ * Lógica:
+ *   · entrou na faixa (io)                      → data-revealed (900ms)
+ *   · saiu pelo topo (io)                       → data-exit="top" (500ms)
+ *   · saiu totalmente por baixo (ioBottom)      → oculta instantâneo
  *
  * Elementos já visíveis quando o loader termina revelam sem animação.
- * `firstCb` previne que o callback inicial do IO dispare saída para esses elementos.
+ * `firstCb` previne que o callback inicial do io dispare saída falsa.
  */
 export function useRevealAll() {
   const { isDone } = useLoader()
@@ -50,9 +55,30 @@ export function useRevealAll() {
     }
 
     // Elementos revelados ao startup (inViewport) ficam com firstCb até o primeiro
-    // callback do IO, evitando disparar saída falsa antes de qualquer scroll.
+    // callback do io, evitando disparar saída falsa antes de qualquer scroll.
     const firstCb = new Set<HTMLElement>()
 
+    // ioBottom: viewport sem margens. Oculta instantaneamente quando o elemento
+    // sai completamente por baixo da tela (usuário rolando pra cima).
+    const ioBottom = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) return
+          const el = entry.target as HTMLElement
+          if (el.hasAttribute('data-reveal-once')) return
+          if (!el.hasAttribute('data-revealed')) return
+          const rootBounds = entry.rootBounds
+          const rect = entry.boundingClientRect
+          // Só age quando o elemento está completamente abaixo da tela
+          if (rootBounds && rect.top >= rootBounds.bottom) {
+            hideInstant(el)
+          }
+        })
+      },
+      { threshold: 0, rootMargin: '0px' },
+    )
+
+    // io: faixa central. Detecta entrada (revela) e saída pelo topo (anima saída).
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -64,7 +90,10 @@ export function useRevealAll() {
           if (entry.isIntersecting) {
             el.removeAttribute('data-exit')
             el.setAttribute('data-revealed', '')
-            if (once) io.unobserve(el)
+            if (once) {
+              io.unobserve(el)
+              ioBottom.unobserve(el)
+            }
           } else if (!isFirst && !once && el.hasAttribute('data-revealed')) {
             const rootBounds = entry.rootBounds
             const rect = entry.boundingClientRect
@@ -72,11 +101,9 @@ export function useRevealAll() {
               // Saiu pelo topo — anima saída
               el.removeAttribute('data-revealed')
               el.setAttribute('data-exit', 'top')
-            } else {
-              // Saiu pelo rodapé (usuário rolou pra cima) — oculta sem animação,
-              // pronto para entrar de novo quando rolar pra baixo
-              hideInstant(el)
             }
+            // Saiu pelo rodapé da faixa (ainda visível): ioBottom cuida
+            // de esconder quando sair totalmente da tela
           }
         })
       },
@@ -93,6 +120,7 @@ export function useRevealAll() {
       }
       firstCb.add(el)
       io.observe(el)
+      ioBottom.observe(el)
     }
 
     document.querySelectorAll<HTMLElement>('[data-reveal]').forEach(register)
@@ -110,6 +138,7 @@ export function useRevealAll() {
 
     return () => {
       io.disconnect()
+      ioBottom.disconnect()
       mo.disconnect()
       firstCb.clear()
     }
