@@ -142,13 +142,13 @@
   transform: translateY(calc((var(--section-p, 0.5) - 0.5) * -13%));
 }
 
-/* ---------- vidro no hover ---------- */
+/* ---------- vidro ---------- */
 /*
- * Três camadas sobre a foto, que aparecem com --tilt (0 → 1, ~300ms) e somem ao sair:
+ * Três camadas sobre a foto, sempre visíveis (com mouse); o hover só dá vida a elas:
  *   .photoLens  cópia da foto com refração do bisel + blur graduado (CardLens)
  *   .photoRim   tint + borda de luz (mesma receita do LiquidGlass)
  *   .photoGlare brilho difuso + arco de luz líquido que segue o cursor
- * Fade só nas camadas; nada de opacity/filter na pílula.
+ * Nada de opacity/filter na pílula.
  */
 .photoLens,
 .photoRim,
@@ -156,18 +156,7 @@
   position: absolute;
   inset: 0;
   border-radius: inherit;
-  opacity: var(--tilt);
   pointer-events: none;
-}
-
-/* fora do hover nem são pintadas */
-.photoCol:not([data-tilt]) :is(.photoLens, .photoRim, .photoGlare) {
-  visibility: hidden;
-}
-
-/* a lente é rasterizada uma vez e gira com a carta; só a opacidade muda por frame */
-.photoCol[data-tilt] .photoLens {
-  will-change: opacity;
 }
 
 /* os brancos e pretos aqui são cor de material (vidro), não de interface */

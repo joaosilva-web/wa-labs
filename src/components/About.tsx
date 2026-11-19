@@ -71,7 +71,7 @@ export function About() {
 
   const reduced = useMediaQuery(REDUCED_MOTION)
   const hasPointer = usePointerEffects()
-  /* foto como carta: tilt 3D + vidro no hover (só com mouse);
+  /* foto como carta: tilt 3D no hover + vidro sempre visível (só com mouse);
      o bisel ondula com a velocidade do mouse (setScale direto no filtro, sem re-render) */
   const lensRef = useRef<CardLensHandle>(null)
   const cardTilt = useCardTilt(photoColRef, {
@@ -312,7 +312,7 @@ export function About() {
                   onError={() => setPhotoFailed(true)}
                 />
               )}
-              {/* vidro no hover: lente que refrata o bisel com blur graduado (o rosto fica
+              {/* vidro (sempre visível): lente que refrata o bisel com blur graduado (o rosto fica
                   nítido no miolo), borda de luz e reflexo líquido que segue o cursor */}
               {cardTilt && (
                 <>
