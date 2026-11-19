@@ -238,18 +238,18 @@ export const about = {
     { text: 'entende o problema.', weight: 'heavy' as const },
   ],
   paragraphs: [
-    'Sou João Gustavo, desenvolvedor full-stack e designer baseado em Maringá. ' +
-    'Trabalho com software há mais de cinco anos — de sites institucionais a sistemas críticos de produção.',
-    'A Wa Labs nasceu da frustração com projetos que começam cheios de promessas e terminam em retrabalho. ' +
-    'Aqui cada linha de código tem um porquê, e nenhuma etapa é pulada.',
+    'Sou desenvolvedor há 3 anos, entre sites, sistemas web e apps em Flutter. ' +
+    'Criei a Wa Labs pra trabalhar do jeito que eu acredito: conversa direta, sem intermediário, ' +
+    'e cada projeto pensado do zero.',
+    'Quando você fala com a Wa Labs, fala comigo — quem desenha, escreve o código e coloca no ar.',
   ],
   facts: [
-    { label: 'Desde', value: '2019' },
-    { label: 'Projetos', value: '30+' },
+    { label: 'Experiência', value: '3 anos' },
+    { label: 'Stack', value: 'React · TypeScript · Flutter' },
     { label: 'Localização', value: 'Maringá — PR' },
   ],
   photo: {
-    src: '/images/joao-gustavo.jpg', // TODO: adicionar foto real
+    src: '/images/joao-gustavo.jpg',
     alt: 'João Gustavo — Wa Labs',
     width: 1200,
     height: 1500,
