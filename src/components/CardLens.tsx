@@ -1,8 +1,36 @@
-import { Fragment, useEffect, useId, useMemo, useRef, useState, type CSSProperties } from 'react'
-import { buildGlassMap, supportsRefraction } from '../utils/liquidGlass'
+import {
+  Fragment,
+  useEffect,
+  useId,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type Ref,
+} from 'react'
+import { buildEdgeMask, buildGlassMap, supportsRefraction } from '../utils/liquidGlass'
+
+/* ---------------------------------------------------------------
+ * Blur graduado do vidro (ajuste aqui):
+ *   BLUR_CENTER  blur no miolo (px). Baixo: o rosto fica nítido.
+ *   BLUR_EDGE    blur perto da borda (px), como vidro grosso.
+ *   SHARP_AREA   fração do raio da pílula, a partir do eixo central, só com
+ *                BLUR_CENTER; dali até a borda o blur forte entra em degradê.
+ * ------------------------------------------------------------- */
+export const BLUR_CENTER = 1
+export const BLUR_EDGE = 6
+export const SHARP_AREA = 0.55
+
+/** Controle imperativo da lente (sem re-render): muda a força da refração ao vivo. */
+export type CardLensHandle = {
+  /** `scale` do feDisplacementMap (com franja: scale −1 / scale / scale +1). */
+  setScale: (scale: number) => void
+}
 
 type Props = {
   src: string
+  ref?: Ref<CardLensHandle>
   className?: string
   /** Classe da <img> interna (ex.: a mesma da foto, pra herdar o parallax). */
   imgClassName?: string
@@ -16,6 +44,10 @@ type Props = {
   brightness?: number
   /** Sem refração (fora do Chromium): vidro fosco leve. */
   fallbackBlur?: number
+  blurCenter?: number
+  blurEdge?: number
+  /** Fração do raio que fica nítida (só blurCenter). */
+  sharpArea?: number
 }
 
 /** Matrizes que isolam R, G e B (mesmas do LiquidGlass). */
@@ -34,10 +66,15 @@ const CHANNEL = [
  * arredondado no pai a refração nem aparece. Um filter comum é rasterizado uma vez,
  * no plano da carta, e gira junto como camada pronta.
  *
+ * Blur graduado dentro do mesmo filtro: a imagem refratada sai em duas versões
+ * (blurCenter e blurEdge) e a forte só aparece perto da borda, por uma máscara
+ * em formato de pílula (buildEdgeMask). Um filtro só, sem cópia extra da foto.
+ *
  * O mapa assume um stadium (border-radius: 999px) do tamanho do elemento.
  * Decorativa: aria-hidden e alt vazio.
  */
 export function CardLens({
+  ref: handleRef,
   src,
   className = '',
   imgClassName = '',
@@ -47,6 +84,9 @@ export function CardLens({
   saturate = 1.1,
   brightness = 1.02,
   fallbackBlur = 2,
+  blurCenter = BLUR_CENTER,
+  blurEdge = BLUR_EDGE,
+  sharpArea = SHARP_AREA,
 }: Props) {
   const ref = useRef<HTMLDivElement>(null)
   const id = `lens-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`
@@ -83,9 +123,25 @@ export function CardLens({
     () => (refraction && size ? buildGlassMap(size.w, size.h, bevel) : ''),
     [refraction, size, bevel],
   )
-  const live = refraction && !!map && !!size
+  const mask = useMemo(
+    () => (refraction && size ? buildEdgeMask(size.w, size.h, sharpArea) : ''),
+    [refraction, size, sharpArea],
+  )
+  const live = refraction && !!map && !!mask && !!size
 
   const scales = chromatic ? [scale - 1, scale, scale + 1] : [scale]
+  const nodes = useRef<(SVGFEDisplacementMapElement | null)[]>([])
+  useImperativeHandle(
+    handleRef,
+    () => ({
+      setScale: (s: number) => {
+        const list = nodes.current
+        const offset = list.length === 3 ? 1 : 0
+        list.forEach((n, i) => n?.setAttribute('scale', (s + i - offset).toFixed(1)))
+      },
+    }),
+    [],
+  )
   const filter = live
     ? `url(#${id}) saturate(${saturate}) brightness(${brightness})`
     : `blur(${fallbackBlur}px) saturate(${saturate})`
@@ -115,17 +171,24 @@ export function CardLens({
             />
             {scales.length === 1 ? (
               <feDisplacementMap
+                ref={(n) => {
+                  nodes.current = [n]
+                }}
                 in="SourceGraphic"
                 in2="map"
                 scale={scales[0]}
                 xChannelSelector="R"
                 yChannelSelector="G"
+                result="disp"
               />
             ) : (
               <>
                 {scales.map((s, i) => (
                   <Fragment key={i}>
                     <feDisplacementMap
+                      ref={(n) => {
+                        nodes.current[i] = n
+                      }}
                       in="SourceGraphic"
                       in2="map"
                       scale={s}
@@ -137,9 +200,26 @@ export function CardLens({
                   </Fragment>
                 ))}
                 <feBlend in="c0" in2="c1" mode="screen" result="rg" />
-                <feBlend in="rg" in2="c2" mode="screen" />
+                <feBlend in="rg" in2="c2" mode="screen" result="disp" />
               </>
             )}
+            {/* blur graduado: leve em tudo, forte só onde a máscara da borda é opaca */}
+            <feGaussianBlur in="disp" stdDeviation={blurCenter} edgeMode="duplicate" result="soft" />
+            <feGaussianBlur in="disp" stdDeviation={blurEdge} edgeMode="duplicate" result="hard" />
+            <feImage
+              href={mask}
+              x="0"
+              y="0"
+              width={size.w}
+              height={size.h}
+              preserveAspectRatio="none"
+              result="mask"
+            />
+            <feComposite in="hard" in2="mask" operator="in" result="edge" />
+            <feMerge>
+              <feMergeNode in="soft" />
+              <feMergeNode in="edge" />
+            </feMerge>
           </filter>
         </svg>
       )}
