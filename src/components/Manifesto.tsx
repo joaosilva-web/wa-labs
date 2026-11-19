@@ -42,7 +42,8 @@ export function Manifesto() {
           tone="dark"
         />
 
-        <h2 className={styles.title}>
+        {/* data-reveal-title: revela com clip-path da esquerda (seção 0, normal) */}
+        <h2 className={styles.title} data-reveal="left" data-reveal-title="">
           {manifesto.lines.map((line, i) => (
             <span key={i} className={styles.line}>
               {line}
@@ -50,6 +51,7 @@ export function Manifesto() {
           ))}
         </h2>
 
+        {/* parágrafo é scroll-driven (palavras acendem com --p) — sem data-reveal */}
         <p ref={paragraphRef} className={styles.paragraph} style={{ '--n': total } as CSSProperties}>
           <span className={styles.srOnly}>{fullText}</span>
           <span aria-hidden="true">
@@ -75,7 +77,7 @@ export function Manifesto() {
           </span>
         </p>
 
-        <p className={styles.signature}>{manifesto.signature}</p>
+        <p className={styles.signature} data-reveal="right">{manifesto.signature}</p>
       </div>
     </section>
   )

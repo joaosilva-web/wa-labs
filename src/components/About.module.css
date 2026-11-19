@@ -39,19 +39,7 @@
   }
 }
 
-/* ---------- reveal da coluna de texto (uma vez) ---------- */
-.textCol > * {
-  opacity: 0;
-  translate: 0 24px;
-  transition:
-    opacity 0.6s var(--ease) calc(var(--i, 0) * 80ms),
-    translate 0.6s var(--ease) calc(var(--i, 0) * 80ms);
-}
-
-.body[data-revealed] .textCol > * {
-  opacity: 1;
-  translate: 0 0;
-}
+/* reveal da coluna de texto: feito pelo sistema global (data-reveal nos filhos) */
 
 /* ---------- coluna da foto ---------- */
 /*
@@ -304,22 +292,9 @@
   transition: transform 0.5s var(--ease) calc(var(--i-fact, 0) * 100ms);
 }
 
-.facts[data-revealed] .fact::before {
+/* borda desenha quando o fact revela (stagger via --i-fact no transition-delay) */
+.fact[data-revealed]::before {
   transform: scaleX(1);
-}
-
-/* Texto dos fatos: sobe com fade logo depois da borda */
-.fact > * {
-  opacity: 0;
-  translate: 0 8px;
-  transition:
-    opacity 0.4s var(--ease) calc(0.3s + var(--i-fact, 0) * 100ms),
-    translate 0.4s var(--ease) calc(0.3s + var(--i-fact, 0) * 100ms);
-}
-
-.facts[data-revealed] .fact > * {
-  opacity: 1;
-  translate: 0 0;
 }
 
 .factLabel {

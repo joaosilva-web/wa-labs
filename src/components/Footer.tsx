@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type CSSProperties } from 'react'
 import { contact, nav, sections, type SectionId } from '../data/content'
 import { REDUCED_MOTION, useMediaQuery } from '../hooks/useMediaQuery'
 import { useProximityWeight } from '../hooks/useProximityWeight'
@@ -73,8 +73,9 @@ export function Footer() {
       <div className={`container-wide ${styles.inner}`}>
         {/* Grid de 4 colunas */}
         <div className={styles.grid}>
+          {/* Footer: seção 6 (normal). Colunas sobem com stagger. */}
           {/* 1. Logo + tagline */}
-          <div className={styles.col}>
+          <div className={styles.col} data-reveal="up" style={{ '--reveal-delay': '0ms' } as CSSProperties}>
             <Logo />
             <p className={styles.tagline}>
               Estúdio de desenvolvimento em Maringá, PR.
@@ -82,7 +83,7 @@ export function Footer() {
           </div>
 
           {/* 2. Navegação */}
-          <div className={styles.col}>
+          <div className={styles.col} data-reveal="up" style={{ '--reveal-delay': '90ms' } as CSSProperties}>
             <p className={styles.colLabel}>Navegação</p>
             <ul className={styles.colLinks}>
               {nav.map((item) => (
@@ -101,7 +102,7 @@ export function Footer() {
           </div>
 
           {/* 3. Contato */}
-          <div className={styles.col}>
+          <div className={styles.col} data-reveal="up" style={{ '--reveal-delay': '180ms' } as CSSProperties}>
             <p className={styles.colLabel}>Contato</p>
             <ul className={styles.colLinks}>
               {channels.map((ch) => (
@@ -120,7 +121,7 @@ export function Footer() {
           </div>
 
           {/* 4. Voltar ao topo */}
-          <div className={styles.col}>
+          <div className={styles.col} data-reveal="up" style={{ '--reveal-delay': '270ms' } as CSSProperties}>
             <p className={styles.colLabel}>Mais</p>
             <button onClick={scrollToTop} className={styles.topBtn}>
               <RollText>Voltar ao topo ↑</RollText>
@@ -129,17 +130,19 @@ export function Footer() {
         </div>
 
         {/* Linha de copyright */}
-        <div className={styles.bar}>
+        <div className={styles.bar} data-reveal="up" style={{ '--reveal-delay': '360ms' } as CSSProperties}>
           <span>© {year} Wa Labs</span>
           <span>Feito em harmonia — 和</span>
         </div>
       </div>
 
-      {/* Marca gigante — decorativa, fora do container pra preencher a tela */}
+      {/* Marca gigante — sobe 120px pra dar mais impacto */}
       <div
         ref={brandRef}
         className={styles.brand}
         aria-hidden="true"
+        data-reveal="up"
+        style={{ '--reveal-dist': '120px' } as CSSProperties}
       >
         {'WA LABS 和'.split('').map((char, i) => (
           <span key={i} data-proximity="" className={styles.brandChar}>

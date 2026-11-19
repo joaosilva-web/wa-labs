@@ -33,19 +33,7 @@
   }
 }
 
-/* ---------- reveal inicial do body ---------- */
-.body > * {
-  opacity: 0;
-  translate: 0 24px;
-  transition:
-    opacity 0.6s var(--ease) calc(var(--i, 0) * 60ms),
-    translate 0.6s var(--ease) calc(var(--i, 0) * 60ms);
-}
-
-.body[data-revealed] > * {
-  opacity: 1;
-  translate: 0 0;
-}
+/* reveal do body: feito pelo sistema global (data-reveal nos elementos) */
 
 /* ---------- coluna do título (sticky na desktop) ---------- */
 .titleCol {
@@ -166,18 +154,6 @@
   user-select: none;
   -webkit-user-select: none;
   outline: none;
-
-  /* Texto sobe com fade logo depois da borda */
-  opacity: 0;
-  translate: 0 10px;
-  transition:
-    opacity 0.4s var(--ease) 0.2s,
-    translate 0.4s var(--ease) 0.2s;
-}
-
-.item[data-revealed] .summary {
-  opacity: 1;
-  translate: 0 0;
 }
 
 .summary:focus-visible {
@@ -296,17 +272,6 @@
   font-family: var(--font-body);
   font-size: var(--text-lg);
   color: var(--muted);
-
-  opacity: 0;
-  translate: 0 16px;
-  transition:
-    opacity 0.6s var(--ease) calc(var(--i, 0) * 60ms),
-    translate 0.6s var(--ease) calc(var(--i, 0) * 60ms);
-}
-
-.body[data-revealed] .footer {
-  opacity: 1;
-  translate: 0 0;
 }
 
 .footerLink {

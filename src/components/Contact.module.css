@@ -70,31 +70,7 @@
   }
 }
 
-/* ---------- Reveal (mesmo padrão dos Serviços) ---------- */
-.left > *,
-.form > * {
-  opacity: 0;
-  translate: 0 0.4em;
-  transition:
-    opacity 0.6s var(--ease) calc(var(--i, 0) * 80ms),
-    translate 0.6s var(--ease) calc(var(--i, 0) * 80ms);
-}
-
-.body[data-revealed] .left > *,
-.body[data-revealed] .form > * {
-  opacity: 1;
-  translate: 0 0;
-}
-
-/* reduced motion: aparece direto */
-@media (prefers-reduced-motion: reduce) {
-  .left > *,
-  .form > * {
-    opacity: 1;
-    translate: 0 0;
-    transition: none;
-  }
-}
+/* reveal: feito pelo sistema global (data-reveal nos filhos) */
 
 /* ---------- Coluna esquerda ---------- */
 .lead {
