@@ -1,16 +1,17 @@
 /* ============================================================
- * Sistema único de animações de entrada
+ * Sistema único de animações de entrada e saída
  *
  * Usage:
  *   data-reveal="left|right|up|down"   — direção de origem
  *   data-reveal-title + data-reveal     — h2 com clip-path nos filhos
+ *   data-reveal-once                    — revela uma vez, sem saída
  *   --reveal-delay                      — atraso individual (opcional)
  *
  * Distâncias padrão: 64px (mobile: 32px); marca do footer: 120px via
  * --reveal-dist local no elemento.
  * ============================================================ */
 
-/* Transição em [data-reveal] (vale nos dois estados: antes e depois de revealed) */
+/* ---- Entrada: 900ms, curva de desaceleração, com delay (stagger) ---- */
 [data-reveal] {
   transition:
     opacity 900ms cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms),
@@ -33,6 +34,15 @@
   translate: 0 0;
 }
 
+/* ---- Saída pelo topo: 500ms, curva de aceleração, sem delay ---- */
+/* Sobrescreve a transição de entrada; o estado visual (opacity/translate) já
+   está definido em :not([data-revealed]) acima — mesmo destino, curva diferente. */
+[data-reveal][data-exit="top"]:not([data-revealed]) {
+  transition:
+    opacity 500ms cubic-bezier(0.7, 0, 0.84, 0),
+    translate 500ms cubic-bezier(0.7, 0, 0.84, 0);
+}
+
 /* ---- Títulos grandes: clip-path nos filhos diretos ----
  *
  * O clip-path fica nos filhos (> *) para não afetar a caixa observada pelo IO.
@@ -40,7 +50,7 @@
  * insets negativos (-0.35em) evitam corte de acentos e descendentes.
  * -------------------------------------------------------- */
 
-/* Transição de clip-path nos filhos, valendo nos dois estados */
+/* Entrada: transição de clip-path nos filhos, valendo nos dois estados */
 [data-reveal-title] > *:not([class*="srOnly"]) {
   transition: clip-path 900ms cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms);
 }
@@ -70,6 +80,11 @@
 /* Estado final: maior que a caixa, nada cortado */
 [data-reveal-title][data-revealed] > *:not([class*="srOnly"]) {
   clip-path: inset(-0.35em);
+}
+
+/* Saída dos filhos de títulos: mesma curva de saída, sem stagger */
+[data-reveal-title][data-exit="top"]:not([data-revealed]) > *:not([class*="srOnly"]) {
+  transition: clip-path 500ms cubic-bezier(0.7, 0, 0.84, 0) 0ms;
 }
 
 /* ---- Mobile: distâncias menores ---- */

@@ -4,16 +4,24 @@ import { useLoader } from '../context/LoaderContext'
 const REDUCED = '(prefers-reduced-motion: reduce)'
 
 /**
- * Sistema único de animações de entrada.
+ * Sistema único de animações de entrada e saída.
  *
- * Observa todos os elementos com `data-reveal` e adiciona `data-revealed` quando
- * entram no viewport (~15% visível, rootMargin -8% inferior).
+ * - `data-reveal`      — anima entrada e saída (bi-direcional)
+ * - `data-reveal-once` — revela uma vez, sem saída (comportamento legado)
+ * - `data-exit="top"`  — estado de saída animada pelo topo
  *
- * - Começa apenas depois que o preloader termina (isDone).
- * - Elementos já no viewport ao iniciar revelam imediatamente, sem transição.
- * - MutationObserver cobre elementos que montam depois.
- * - Reduced-motion: data-revealed é adicionado imediatamente em todos.
- * - will-change é removido via transitionend.
+ * Dois IntersectionObservers:
+ *   io      (-15% topo / -8% rodapé) — detecta entrada e saída pelo topo
+ *   ioBottom (0px, viewport real)    — detecta quando o elemento saiu
+ *                                      completamente por baixo da tela
+ *
+ * Lógica:
+ *   · entrou na faixa (io)                      → data-revealed (900ms)
+ *   · saiu pelo topo (io)                       → data-exit="top" (500ms)
+ *   · saiu totalmente por baixo (ioBottom)      → oculta instantâneo
+ *
+ * Elementos já visíveis quando o loader termina revelam sem animação.
+ * `firstCb` previne que o callback inicial do io dispare saída falsa.
  */
 export function useRevealAll() {
   const { isDone } = useLoader()
@@ -23,16 +31,14 @@ export function useRevealAll() {
 
     const reduced = window.matchMedia(REDUCED).matches
 
-    const revealEl = (el: HTMLElement, animate: boolean) => {
-      if (!animate || reduced) {
+    if (reduced) {
+      document.querySelectorAll<HTMLElement>('[data-reveal]').forEach((el) => {
         el.style.transition = 'none'
         el.setAttribute('data-revealed', '')
-        // força reflow pra o override de transition ser aplicado antes do próximo paint
         void el.getBoundingClientRect()
         el.style.transition = ''
-      } else {
-        el.setAttribute('data-revealed', '')
-      }
+      })
+      return
     }
 
     const inViewport = (el: HTMLElement) => {
@@ -40,29 +46,81 @@ export function useRevealAll() {
       return r.top < window.innerHeight && r.bottom > 0
     }
 
-    if (reduced) {
-      document.querySelectorAll<HTMLElement>('[data-reveal]').forEach(el => revealEl(el, false))
-      return
+    const hideInstant = (el: HTMLElement) => {
+      el.style.transition = 'none'
+      el.removeAttribute('data-revealed')
+      el.removeAttribute('data-exit')
+      void el.getBoundingClientRect()
+      el.style.transition = ''
     }
 
+    // Elementos revelados ao startup (inViewport) ficam com firstCb até o primeiro
+    // callback do io, evitando disparar saída falsa antes de qualquer scroll.
+    const firstCb = new Set<HTMLElement>()
+
+    // ioBottom: viewport sem margens. Oculta instantaneamente quando o elemento
+    // sai completamente por baixo da tela (usuário rolando pra cima).
+    const ioBottom = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) return
+          const el = entry.target as HTMLElement
+          if (el.hasAttribute('data-reveal-once')) return
+          if (!el.hasAttribute('data-revealed')) return
+          const rootBounds = entry.rootBounds
+          const rect = entry.boundingClientRect
+          // Só age quando o elemento está completamente abaixo da tela
+          if (rootBounds && rect.top >= rootBounds.bottom) {
+            hideInstant(el)
+          }
+        })
+      },
+      { threshold: 0, rootMargin: '0px' },
+    )
+
+    // io: faixa central. Detecta entrada (revela) e saída pelo topo (anima saída).
     const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (!entry.isIntersecting) return
-          io.unobserve(entry.target)
-          revealEl(entry.target as HTMLElement, true)
+          const el = entry.target as HTMLElement
+          const once = el.hasAttribute('data-reveal-once')
+          const isFirst = firstCb.has(el)
+          if (isFirst) firstCb.delete(el)
+
+          if (entry.isIntersecting) {
+            el.removeAttribute('data-exit')
+            el.setAttribute('data-revealed', '')
+            if (once) {
+              io.unobserve(el)
+              ioBottom.unobserve(el)
+            }
+          } else if (!isFirst && !once && el.hasAttribute('data-revealed')) {
+            const rootBounds = entry.rootBounds
+            const rect = entry.boundingClientRect
+            if (rootBounds && rect.top < rootBounds.top) {
+              // Saiu pelo topo — anima saída
+              el.removeAttribute('data-revealed')
+              el.setAttribute('data-exit', 'top')
+            }
+            // Saiu pelo rodapé da faixa (ainda visível): ioBottom cuida
+            // de esconder quando sair totalmente da tela
+          }
         })
       },
-      { threshold: 0, rootMargin: '0px 0px -8% 0px' },
+      { threshold: 0, rootMargin: '-15% 0px -8% 0px' },
     )
 
     const register = (el: HTMLElement) => {
-      if (el.hasAttribute('data-revealed')) return
+      if (el.hasAttribute('data-revealed') || el.hasAttribute('data-exit')) return
       if (inViewport(el)) {
-        revealEl(el, false)
-      } else {
-        io.observe(el)
+        el.style.transition = 'none'
+        el.setAttribute('data-revealed', '')
+        void el.getBoundingClientRect()
+        el.style.transition = ''
       }
+      firstCb.add(el)
+      io.observe(el)
+      ioBottom.observe(el)
     }
 
     document.querySelectorAll<HTMLElement>('[data-reveal]').forEach(register)
@@ -80,7 +138,9 @@ export function useRevealAll() {
 
     return () => {
       io.disconnect()
+      ioBottom.disconnect()
       mo.disconnect()
+      firstCb.clear()
     }
   }, [isDone])
 }
