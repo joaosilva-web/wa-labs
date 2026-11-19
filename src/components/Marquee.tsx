@@ -25,7 +25,7 @@ export function Marquee({ items, separator = '和', label }: Props) {
       <p className={styles.srOnly}>{label}</p>
       <div className={styles.marquee} data-tone="primary" aria-hidden="true">
         <div ref={trackRef} className={styles.track}>
-          {[0, 1].map((copy) => (
+          {[0, 1, 2, 3].map((copy) => (
             <span key={copy} className={styles.group}>
               {items.map((item) => (
                 <Fragment key={item}>
