@@ -142,6 +142,7 @@ export function Footer() {
         className={styles.brand}
         aria-hidden="true"
         data-reveal="up"
+        data-reveal-once=""
         style={{ '--reveal-dist': '120px' } as CSSProperties}
       >
         {'WA LABS 和'.split('').map((char, i) => (

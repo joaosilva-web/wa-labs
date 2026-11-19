@@ -29,7 +29,7 @@ export function Faq() {
           {/* Título — sticky na desktop; .titleCol não recebe data-reveal (é sticky).
               O h2 dentro recebe: seção 4 normal → título da esquerda. */}
           <div className={styles.titleCol}>
-            <h2 className={styles.title} data-reveal="left" data-reveal-title="">
+            <h2 className={styles.title} data-reveal="left" data-reveal-title="" data-reveal-once="">
               {faq.title.map((seg, i) => (
                 <span key={i} className={seg.weight === 'light' ? styles.light : styles.heavy}>
                   {seg.text}
