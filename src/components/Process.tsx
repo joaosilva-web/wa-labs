@@ -2,13 +2,81 @@ import { useCallback, useEffect, useRef, useState, type CSSProperties, type Focu
 import { process, processSection as copy, sections } from '../data/content'
 import { scrollToY } from '../lenis'
 import { REDUCED_MOTION, useMediaQuery } from '../hooks/useMediaQuery'
+import { useGlassShine } from '../hooks/useGlassShine'
 import { useScrollProgress } from '../hooks/useScrollProgress'
 import { useViewProgress } from '../hooks/useViewProgress'
 import { SectionMeta } from './SectionMeta'
 import styles from './Process.module.css'
+import gfStyles from '../styles/glass-finish.module.css'
 
 const pad = (n: number) => String(n).padStart(2, '0')
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n))
+
+/* ---------------------------------------------------------------
+ * StepItem — subcomponente isolado para que cada etapa tenha seus
+ * próprios hooks de useGlassShine (número e pílula independentes).
+ * ------------------------------------------------------------- */
+type StepItemProps = {
+  item: (typeof process)[number]
+  index: number
+  isActive: boolean
+  pinned: boolean
+}
+
+function StepItem({ item, isActive, pinned }: StepItemProps) {
+  const numberRef = useRef<HTMLDivElement>(null)
+  const pillRef = useRef<HTMLSpanElement>(null)
+
+  useGlassShine(numberRef)
+  useGlassShine(pillRef)
+
+  return (
+    <li
+      className={styles.step}
+      data-active={!pinned || isActive || undefined}
+    >
+      {/* Número gigante: outline → sólido conforme --active */}
+      <div ref={numberRef} className={styles.numberWrap}>
+        <span className={styles.number} aria-hidden="true">
+          {item.step}
+        </span>
+        <span className={styles.numberGlass} aria-hidden="true">
+          {item.step}
+        </span>
+      </div>
+
+      {/* Kanji + leitura */}
+      <div className={styles.kanjiRow}>
+        <span
+          ref={pillRef}
+          className={`${styles.pill} ${gfStyles.glassFinish}`}
+          aria-hidden="true"
+        >
+          <span className={styles.kanji}>{item.kanji}</span>
+        </span>
+        <span className={styles.reading}>
+          <span lang="ja-Latn">{item.reading}</span> · {item.meaning}
+        </span>
+      </div>
+
+      {/* Título + descrição + entregáveis */}
+      <div className={styles.body}>
+        <div>
+          <h3 className={styles.stepTitle}>
+            <span className={styles.srOnly}>{item.step}. </span>
+            {item.title}
+          </h3>
+          <p className={styles.description}>{item.description}</p>
+        </div>
+        <ul className={styles.deliverables}>
+          {item.deliverables.map((d) => (
+            <li key={d}>{d}</li>
+          ))}
+        </ul>
+      </div>
+    </li>
+  )
+}
 
 /** O trilho chega ao fim em 94% do trajeto: o último trecho segura a última etapa inteira na tela. */
 const HOLD = 0.94
@@ -184,39 +252,13 @@ export function Process() {
 
             <ol ref={listRef} className={styles.steps} onFocus={onFocus}>
               {process.map((item, i) => (
-                <li
+                <StepItem
                   key={item.step}
-                  className={styles.step}
-                  data-active={!pinned || i === active || undefined}
-                >
-                  <span className={styles.number} aria-hidden="true">
-                    {item.step}
-                  </span>
-
-                  <div className={styles.kanjiRow}>
-                    <span className={styles.pill} aria-hidden="true">
-                      <span className={styles.kanji}>{item.kanji}</span>
-                    </span>
-                    <span className={styles.reading}>
-                      <span lang="ja-Latn">{item.reading}</span> · {item.meaning}
-                    </span>
-                  </div>
-
-                  <div className={styles.body}>
-                    <div>
-                      <h3 className={styles.stepTitle}>
-                        <span className={styles.srOnly}>{item.step}. </span>
-                        {item.title}
-                      </h3>
-                      <p className={styles.description}>{item.description}</p>
-                    </div>
-                    <ul className={styles.deliverables}>
-                      {item.deliverables.map((d) => (
-                        <li key={d}>{d}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </li>
+                  item={item}
+                  index={i}
+                  isActive={i === active}
+                  pinned={pinned}
+                />
               ))}
             </ol>
           </div>

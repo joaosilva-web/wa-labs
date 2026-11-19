@@ -107,6 +107,13 @@
   initial-value: 100%;
 }
 
+/* --active 0 → 1: número e pílula entram como Liquid Glass na etapa ativa */
+@property --active {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
+
 /*
  * Etapa inativa ≈ opacidade 0.35, mas feita misturando as cores com o fundo:
  * o resultado é o mesmo sobre o fundo liso, e a pílula continua opaca — com
@@ -114,6 +121,7 @@
  */
 .step {
   --fade: 35%;
+  --active: 0;
   --ink: color-mix(in srgb, var(--color-text) var(--fade), var(--color-bg));
   --ink-muted: color-mix(in srgb, var(--color-text-muted) var(--fade), var(--color-bg));
   --pill-bg: color-mix(in srgb, var(--color-primary) var(--fade), var(--color-bg));
@@ -121,11 +129,12 @@
 
   position: relative;
   color: var(--ink);
-  transition: --fade 400ms var(--ease);
+  transition: --fade 400ms var(--ease), --active 600ms var(--ease);
 }
 
 .step[data-active] {
   --fade: 100%;
+  --active: 1;
 }
 
 /* mobile: bolinha de cada etapa sobre o fio */
@@ -141,6 +150,14 @@
   background: var(--color-primary);
 }
 
+/* ---------- número: wrapper + crossfade outline → sólido com acabamento ---------- */
+.numberWrap {
+  position: relative;
+  display: block;
+  /* --mx do useGlassShine herda para o .numberGlass filho */
+}
+
+/* Outline (inativa): some quando --active → 1 */
 .number {
   display: block;
   font-family: var(--font-display);
@@ -150,6 +167,40 @@
   letter-spacing: -0.04em;
   color: transparent;
   -webkit-text-stroke: 1.5px var(--ink);
+  opacity: calc(1 - var(--active));
+}
+
+/*
+ * Acabamento sólido (ativa): algarismos preenchidos com --color-text + arco de reflexo.
+ * background-clip: text clippa tanto background-color quanto background-image ao contorno dos caracteres.
+ * Camadas (de cima pra baixo dentro do texto):
+ *   1. arco elíptico seguindo --mx (mesmo mecanismo do botão, mas como gradiente de bg)
+ *   2. gradiente de luz (branco → transparente em 55%, igual ao botão)
+ *   3. escurecimento sutil na base (simulando a sombra inset inferior do botão)
+ *   4. background-color: --color-text (preto — a cor base dos algarismos)
+ * filter: drop-shadow → equivalente à sombra externa do botão, e 2.º drop-shadow
+ *   simula o fio de luz no topo (exibido fora dos caracteres mas imperceptível).
+ */
+.numberGlass {
+  position: absolute;
+  inset: 0;
+  display: block;
+  font-family: var(--font-display);
+  font-size: var(--num);
+  font-weight: 900;
+  line-height: 0.8;
+  letter-spacing: -0.04em;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  background-color: var(--color-text);
+  background-image:
+    radial-gradient(ellipse 55% 45% at calc(var(--mx, 0.5) * 100%) 20%, rgb(255 255 255 / 0.38) 0%, transparent 60%),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.22), rgb(255 255 255 / 0) 55%),
+    linear-gradient(to top, rgb(0 0 0 / 0.05), transparent 40%);
+  filter: drop-shadow(0 2px 8px rgb(0 0 0 / 0.12)) drop-shadow(0 -1px 0 rgb(255 255 255 / 0.28));
+  pointer-events: none;
+  opacity: var(--active);
 }
 
 .kanjiRow {
@@ -160,19 +211,23 @@
   margin-top: var(--space-6);
 }
 
-/* mesmo formato da pílula da hero; kanji escuro sobre o verde (verde direto no claro não tem contraste) */
+/*
+ * Pílula do kanji — mesmo acabamento do botão primário via glassFinish.
+ * --gf-base segue --pill-bg (já transiciona com --fade): inativa = verde claro,
+ * ativa = --color-primary completo. O reflexo (::after) segue --mx do useGlassShine.
+ */
 .pill {
   position: relative;
-  z-index: 1;
+  z-index: 1; /* fica à frente da linha do tempo (.steps::before) */
   display: grid;
   place-items: center;
   height: var(--pill-h);
   aspect-ratio: 2.2;
   border-radius: var(--radius-pill);
-  background: var(--pill-bg);
+  /* background-color vem do .glassFinish via --gf-base; background (shorthand) não pode ser usado */
+  --gf-base: var(--pill-bg);
   color: var(--pill-ink);
-  transform-origin: left center;
-  transition: scale 400ms var(--ease);
+  transition: scale 400ms var(--ease), box-shadow 0.2s var(--ease);
 }
 
 .kanji {
@@ -328,6 +383,7 @@
 .process[data-pinned] .step[data-active] .pill {
   scale: 1;
 }
+
 
 /* ---------- barra de progresso ---------- */
 .bar {
