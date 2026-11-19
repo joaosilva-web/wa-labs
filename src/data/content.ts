@@ -130,9 +130,9 @@ export type Service = {
 
 export const servicesSection = {
   label: 'Serviços',
-  /** "03 frentes" — o número vem do tamanho da lista */
+  /** "04 frentes" — o número vem do tamanho da lista */
   countLabel: 'frentes',
-  title: ['Três frentes,', 'uma só harmonia.'],
+  title: ['Quatro frentes,', 'uma só harmonia.'],
   lead: 'Do site institucional ao app na loja — cada projeto nasce do zero, pensado pro seu negócio.',
   href: '#contato',
   /** Início da frase lida no lugar da faixa (só leitores de tela) */
@@ -140,7 +140,7 @@ export const servicesSection = {
 }
 
 /** Faixa em movimento que fecha a seção de serviços (o 和 é o separador). */
-export const marquee = ['Sites', 'Sistemas web', 'Apps mobile', 'React', 'Flutter', 'TypeScript']
+export const marquee = ['Branding', 'Sites', 'Sistemas web', 'Apps mobile']
 
 export const services: Service[] = [
   {
@@ -151,7 +151,7 @@ export const services: Service[] = [
     title: 'Sites e landing pages',
     description:
       'Páginas rápidas, responsivas e pensadas pra converter visitantes em clientes.',
-    tags: ['React', 'Next.js', 'SEO'],
+    tags: ['Site institucional', 'Landing page', 'Aparece no Google'],
   },
   {
     kanji: '築',
@@ -161,7 +161,7 @@ export const services: Service[] = [
     title: 'Sistemas web',
     description:
       'Painéis, plataformas e ferramentas internas que resolvem problemas reais do dia a dia.',
-    tags: ['TypeScript', 'APIs', 'Dashboards'],
+    tags: ['Painéis', 'Automações', 'Área do cliente'],
   },
   {
     kanji: '携',
@@ -172,7 +172,15 @@ export const services: Service[] = [
     title: 'Apps mobile',
     description:
       'Aplicativos para Android e iOS com uma única base de código, do protótipo à loja.',
-    tags: ['Flutter', 'Android', 'iOS'],
+    tags: ['Android', 'iOS', 'Publicação nas lojas'],
+  },
+  {
+    kanji: '印',
+    reading: 'Shirushi',
+    meaning: 'Marca',
+    title: 'Branding',
+    description: 'Logo, cores e tipografia que dão cara e personalidade ao seu negócio — prontos pra usar no site, nas redes e no impresso.',
+    tags: ['Logo', 'Identidade visual', 'Manual da marca'],
   },
 ]
 
