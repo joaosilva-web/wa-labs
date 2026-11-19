@@ -132,60 +132,26 @@
 
 /* ---------- vidro ---------- */
 /*
- * Três camadas sobre a foto, sempre visíveis (com mouse); o hover só dá vida a elas:
+ * Duas camadas sobre a foto, sempre visíveis (com mouse); o hover dá vida a elas:
  *   .photoLens  cópia da foto com refração do bisel + blur graduado (CardLens)
- *   .photoRim   tint + borda de luz (mesma receita do LiquidGlass)
- *   .photoGlare brilho difuso + arco de luz líquido que segue o cursor
+ *   .photoGlass rim de luz + reflexo líquido (GlassCard)
  * Nada de opacity/filter na pílula.
  */
-.photoLens,
-.photoRim,
-.photoGlare {
+.photoLens {
   position: absolute;
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
 }
 
-/* os brancos e pretos aqui são cor de material (vidro), não de interface */
-.photoRim {
-  background: rgb(255 255 255 / 0.04);
-  box-shadow:
-    inset 0 0 0 1px rgb(255 255 255 / 0.22),
-    inset 0 1px 1px rgb(255 255 255 / 0.8),
-    inset 0 -8px 14px -10px rgb(0 0 0 / 0.18);
-}
-
-/*
- * Reflexo da carta:
- * - brilho difuso no canto mais perto do cursor (corre com a inclinação)
- * - ::after: arco de luz curvo, a mesma receita do reflexo dos botões verdes
- *   (metade de cima, branco 35% → 0), adaptado à pílula. Segue o cursor com atraso
- *   (--gx / --gy, 0 → 1) e estica na direção do movimento (--gsx / --gangle);
- *   tudo escrito pelo useCardTilt.
- */
-.photoGlare {
-  overflow: hidden;
-  background: radial-gradient(
-    circle at calc(50% + var(--ry) * 4%) calc(50% - var(--rx) * 5%),
-    rgb(255 255 255 / 0.12),
-    rgb(255 255 255 / 0) 55%
-  );
-}
-
-.photoGlare::after {
-  content: '';
-  position: absolute;
-  top: 1.5%;
-  left: 12%;
-  width: 76%;
-  height: 46%;
-  /* topo acompanha a curva da pílula; base achatada, como no botão */
-  border-radius: 50% 50% 50% 50% / 100% 100% 30% 30%;
-  background: linear-gradient(to bottom, rgb(255 255 255 / 0.35), rgb(255 255 255 / 0));
-  transform-origin: 50% 40%;
-  translate: calc((var(--gx) - 0.5) * 34%) calc((var(--gy) - 0.5) * 44%);
-  transform: rotate(var(--gangle)) scaleX(var(--gsx)) rotate(calc(var(--gangle) * -1));
+/* GlassCard.module.css posiciona .root como absolute inset: 0;
+   aqui apenas definimos as cores do material (fundo escuro → brancos). */
+.photoGlass {
+  /* rim: fundo escuro → bordas brancas */
+  --gc-tint: rgb(255 255 255 / 0.04);
+  --gc-rim-outline: rgb(255 255 255 / 0.22);
+  --gc-rim-top: rgb(255 255 255 / 0.8);
+  --gc-rim-base: rgb(0 0 0 / 0.18);
 }
 
 /* Fallback: kanji 和 no centro */

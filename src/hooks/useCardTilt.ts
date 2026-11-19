@@ -47,6 +47,8 @@ type Options = {
    * Chamado no máximo a cada RIPPLE_EVERY frames, só enquanto muda; termina sempre em 0.
    */
   onRipple?: (amount: number) => void
+  /** false desativa todos os listeners (ex.: etapa inativa no Processo). Padrão: true. */
+  enabled?: boolean
 }
 
 /**
@@ -65,7 +67,7 @@ type Options = {
  * Só com mouse/trackpad. Com reduced motion não inclina: --tilt vai a 1/0 na hora.
  * Mede a caixa do próprio `ref` (sem transform): ponha a rotação num filho, não nele.
  */
-export function useCardTilt(ref: RefObject<HTMLElement | null>, { onRipple }: Options = {}) {
+export function useCardTilt(ref: RefObject<HTMLElement | null>, { onRipple, enabled = true }: Options = {}) {
   const fine = useMediaQuery(FINE_POINTER)
   const reduced = useMediaQuery(REDUCED_MOTION)
   // callback numa ref: trocar a função não reinicia o efeito
@@ -76,7 +78,7 @@ export function useCardTilt(ref: RefObject<HTMLElement | null>, { onRipple }: Op
 
   useEffect(() => {
     const el = ref.current
-    if (!fine || !el) return
+    if (!fine || !el || !enabled) return
 
     const write = (rx: number, ry: number, tilt: number) => {
       el.style.setProperty('--rx', rx.toFixed(3))
@@ -243,7 +245,7 @@ export function useCardTilt(ref: RefObject<HTMLElement | null>, { onRipple }: Op
       clear(el)
       if (rippleSent) rippleRef.current?.(0)
     }
-  }, [ref, fine, reduced])
+  }, [ref, fine, reduced, enabled])
 
   return fine
 }

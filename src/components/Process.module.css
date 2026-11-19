@@ -4,7 +4,19 @@
  * [data-pinned]: a seção prende e o scroll anda o trilho na horizontal.
  * O JS escreve no .sticky: --p (0 → 1), --travel (px) e --stop-N (p de cada etapa).
  * Na lista, --line (0 → 1) desenha a linha vertical do mobile.
+ *
+ * Vidro líquido:
+ *   --active  0 → 1 (registered @property): anima scale e entrada do vidro da etapa ativa.
+ *   Desktop: só a etapa ativa recebe LiquidGlass + GlassCard.
+ *   Mobile: todas as etapas recebem LiquidGlass fosco.
  */
+
+/* @property: herdável para que .stepCard (filho de .step) leia o valor animado */
+@property --active {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0;
+}
 .process {
   --header-h: 72px; /* o header fica fixo por cima da seção */
   /* número gigante vazado: limitado pela altura também, pra caber em telas baixas */
@@ -113,6 +125,7 @@
  * opacity de verdade o fio da linha do tempo apareceria atravessando ela.
  */
 .step {
+  --active: 0;
   --fade: 35%;
   --ink: color-mix(in srgb, var(--color-text) var(--fade), var(--color-bg));
   --ink-muted: color-mix(in srgb, var(--color-text-muted) var(--fade), var(--color-bg));
@@ -121,11 +134,82 @@
 
   position: relative;
   color: var(--ink);
-  transition: --fade 400ms var(--ease);
+  transition:
+    --active 600ms var(--ease),
+    --fade 400ms var(--ease);
 }
 
 .step[data-active] {
+  --active: 1;
   --fade: 100%;
+}
+
+/* ---------- stepCard: container 3D (tilt + scale via --active) ---------- */
+.stepCard {
+  position: relative;
+  border-radius: var(--radius-lg);
+  /* scale: 0.96 inativo → 1.0 ativo; rotação vem do useCardTilt via rAF */
+  transform:
+    scale(calc(0.96 + 0.04 * var(--active, 0)))
+    rotateX(calc(var(--rx, 0) * 1deg))
+    rotateY(calc(var(--ry, 0) * 1deg));
+  /* sombra externa: aparece/some junto com o vidro */
+  box-shadow:
+    0 var(--space-4) var(--space-16) calc(-1 * var(--space-8))
+    color-mix(in srgb, rgb(0 0 0 / 0.14) calc(var(--active, 0) * 100%), transparent);
+}
+
+/* reduced motion: sem tilt; scale e sombra permanecem (transition: none do global.css torna instantâneo) */
+@media (prefers-reduced-motion: reduce) {
+  .stepCard {
+    transform: scale(calc(0.96 + 0.04 * var(--active, 0)));
+  }
+}
+
+/* ---------- stepGlass: LiquidGlass posicionado absolutamente ---------- */
+/*
+ * Toda a intensidade do material é derivada de --active (herdado do .step).
+ * --active: 0 → vidro invisível; 1 → material leve completo.
+ * A transição de 600ms no .step anima --active e todas as vars cascateadas.
+ * Sem animation: a aparência sobe e desce junto com --active.
+ */
+.stepGlass {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+
+  /* tint: branco 30% quando ativo, transparente quando inativo */
+  --lg-tint: color-mix(in srgb, rgb(255 255 255 / 0.30) calc(var(--active, 0) * 100%), transparent);
+  --lg-tint-highlight: color-mix(in srgb, rgb(255 255 255 / 0.08) calc(var(--active, 0) * 100%), transparent);
+
+  /* brilho especular e blur reduzidos a zero quando inativo */
+  --lg-shine: calc(0.3 * var(--active, 0));
+  --lg-blur: calc(2px * var(--active, 0));
+  --lg-saturate: calc(1 + 0.1 * var(--active, 0));
+
+  /* borda: deriva de --active */
+  --lg-rim-outline: color-mix(in srgb, rgb(0 0 0 / 0.05) calc(var(--active, 0) * 100%), transparent);
+  --lg-rim-top: color-mix(in srgb, rgb(255 255 255 / 0.85) calc(var(--active, 0) * 100%), transparent);
+  --lg-rim-base: transparent;
+  --lg-rim-inner: transparent;
+
+  /* fosco (Safari/Firefox e durante o scroll no Chromium): também faz fade */
+  --lg-fallback-blur: calc(8px * var(--active, 0));
+  --lg-fallback-saturate: calc(1 + 0.6 * var(--active, 0));
+}
+
+/* ---------- stepContent: conteúdo acima do vidro ---------- */
+.stepContent {
+  position: relative;
+  z-index: 2;
+}
+
+/* ---------- stepGlassOverlay: GlassCard (rim + glare) ---------- */
+.stepGlassOverlay {
+  /* GlassCard.module.css: position: absolute; inset: 0; pointer-events: none */
+  z-index: 3;
+  border-radius: inherit;
 }
 
 /* mobile: bolinha de cada etapa sobre o fio */
@@ -315,6 +399,8 @@
   flex: none;
   width: max(560px, 60vw);
   padding-right: var(--space-16);
+  /* perspective para o tilt 3D do stepCard */
+  perspective: 900px;
 }
 
 .process[data-pinned] .step::before {
@@ -331,6 +417,8 @@
 
 /* ---------- barra de progresso ---------- */
 .bar {
+  /* --bar-inset-right: folga para o botão flutuante do WhatsApp (direita: 24px + 56px) */
+  --bar-inset-right: 88px;
   position: relative;
   flex: none;
   height: 13px;
@@ -342,7 +430,7 @@
   position: absolute;
   top: 50%;
   left: 0;
-  right: 0;
+  right: var(--bar-inset-right, 0px);
   translate: 0 -50%;
 }
 
@@ -361,7 +449,8 @@
 .marker {
   position: absolute;
   top: 50%;
-  left: calc(var(--at) * 100%);
+  /* percentual sobre a largura útil (descontando a folga do FAB) */
+  left: calc(var(--at) * (100% - var(--bar-inset-right, 0px)));
   width: 11px;
   height: 11px;
   translate: -50% -50%;
