@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type FocusEvent } from 'react'
 import { process, processSection as copy, sections } from '../data/content'
+import { scrollToY } from '../lenis'
 import { REDUCED_MOTION, useMediaQuery } from '../hooks/useMediaQuery'
 import { useScrollProgress } from '../hooks/useScrollProgress'
 import { useViewProgress } from '../hooks/useViewProgress'
@@ -137,7 +138,7 @@ export function Process() {
     sticky.scrollLeft = 0 // o navegador não pode rolar o sticky por conta própria
     const pinTravel = wrapper.offsetHeight - sticky.offsetHeight
     const top = wrapper.getBoundingClientRect().top + window.scrollY
-    window.scrollTo({ top: top + layout.current.stops[index] * HOLD * pinTravel, behavior: 'auto' })
+    scrollToY(top + layout.current.stops[index] * HOLD * pinTravel)
   }
 
   const counter = (
