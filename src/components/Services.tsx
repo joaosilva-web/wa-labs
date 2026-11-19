@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { useRef, useState, type CSSProperties } from 'react'
 import { marquee, sections, services, servicesSection as copy } from '../data/content'
-import { REDUCED_MOTION, useMediaQuery, usePointerEffects } from '../hooks/useMediaQuery'
+import { usePointerEffects } from '../hooks/useMediaQuery'
 import { Marquee } from './Marquee'
 import { RollText } from './RollText'
 import { SectionMeta } from './SectionMeta'
@@ -9,32 +9,15 @@ import styles from './Services.module.css'
 
 const pad = (n: number) => String(n).padStart(2, '0')
 
+// Serviços: seção 1 (ímpar → espelhada): título vem da direita, texto da esquerda.
+// Itens da lista alternam esquerda/direita.
+const ITEM_DIR = ['left', 'right'] as const
+
 export function Services() {
   const listRef = useRef<HTMLOListElement>(null)
   const pointerFx = usePointerEffects()
-  const reduced = useMediaQuery(REDUCED_MOTION)
   // muda só ao trocar de linha (nada por frame)
   const [active, setActive] = useState(0)
-
-  // Entrada: uma vez só, quando a lista aparece (marcada no DOM, sem re-render)
-  useEffect(() => {
-    const list = listRef.current
-    if (!list) return
-    if (reduced) {
-      list.setAttribute('data-revealed', '')
-      return
-    }
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting) return
-        list.setAttribute('data-revealed', '')
-        io.disconnect()
-      },
-      { rootMargin: '0px 0px -15% 0px' },
-    )
-    io.observe(list)
-    return () => io.disconnect()
-  }, [reduced])
 
   return (
     <section id="servicos" className={styles.services} data-tone="dark">
@@ -47,16 +30,25 @@ export function Services() {
         />
 
         <div className={styles.head}>
-          <h2 className={styles.title}>
+          {/* seção 1 espelhada: título da direita */}
+          <h2 className={styles.title} data-reveal="right" data-reveal-title="">
             <span className={styles.light}>{copy.title[0]}</span>
             <span className={styles.heavy}>{copy.title[1]}</span>
           </h2>
-          <p className={styles.lead}>{copy.lead}</p>
+          {/* texto da esquerda */}
+          <p className={styles.lead} data-reveal="left" style={{ '--reveal-delay': '120ms' } as CSSProperties}>
+            {copy.lead}
+          </p>
         </div>
 
         <ol ref={listRef} className={styles.list} data-fx={pointerFx || undefined}>
           {services.map((service, i) => (
-            <li key={service.title} className={styles.item} style={{ '--i': i } as CSSProperties}>
+            <li
+              key={service.title}
+              className={styles.item}
+              style={{ '--i': i, '--reveal-delay': `${i * 90}ms` } as CSSProperties}
+              data-reveal={ITEM_DIR[i % 2]}
+            >
               <a
                 href={copy.href}
                 className={styles.row}

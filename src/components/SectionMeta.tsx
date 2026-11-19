@@ -13,7 +13,7 @@ type Props = {
 /** Barra de metadados do topo das seções: rótulo numerado à esquerda, info à direita. */
 export function SectionMeta({ index, label, aside, tone = 'light' }: Props) {
   return (
-    <div className={`${styles.meta} ${styles[tone]}`}>
+    <div className={`${styles.meta} ${styles[tone]}`} data-reveal="down">
       <span>
         ({String(index).padStart(2, '0')}) {label}
       </span>

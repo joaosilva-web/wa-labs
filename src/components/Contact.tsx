@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties, type FormEvent } from 'react'
 import { contact, sections } from '../data/content'
 import { useClock } from '../hooks/useClock'
-import { REDUCED_MOTION, useMediaQuery } from '../hooks/useMediaQuery'
 import { Button } from './Button'
 import { RollText } from './RollText'
 import { SectionMeta } from './SectionMeta'
@@ -12,8 +11,6 @@ const WA_NUMBER = contact.whatsapp.replace('https://wa.me/', '')
 export function Contact() {
   const nameInputRef = useRef<HTMLInputElement>(null)
   const msgRef = useRef<HTMLTextAreaElement>(null)
-  const revealRef = useRef<HTMLDivElement>(null)
-  const reduced = useMediaQuery(REDUCED_MOTION)
 
   const [name, setName] = useState('')
   const [projectType, setProjectType] = useState('')
@@ -35,23 +32,6 @@ export function Contact() {
     ta.style.height = 'auto'
     ta.style.height = `${ta.scrollHeight}px`
   }, [message])
-
-  // reveal animation (once, same pattern as Services)
-  useEffect(() => {
-    const el = revealRef.current
-    if (!el) return
-    if (reduced) { el.setAttribute('data-revealed', ''); return }
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting) return
-        el.setAttribute('data-revealed', '')
-        io.disconnect()
-      },
-      { rootMargin: '0px 0px -10% 0px' },
-    )
-    io.observe(el)
-    return () => io.disconnect()
-  }, [reduced])
 
   // Limpa o timer ao desmontar
   useEffect(() => () => { if (copyTimerRef.current) clearTimeout(copyTimerRef.current) }, [])
@@ -107,8 +87,8 @@ export function Contact() {
           tone="dark"
         />
 
-        {/* Título com pílula estática */}
-        <h2 className={styles.title} aria-label="Vamos construir algo juntos?">
+        {/* Título com pílula estática — seção 5 espelhada: título da direita */}
+        <h2 className={styles.title} aria-label="Vamos construir algo juntos?" data-reveal="right" data-reveal-title="">
           <span className={styles.titleLight}>{contact.title[0].text}</span>
           {' '}
           <span className={styles.pill} aria-hidden="true">
@@ -118,11 +98,11 @@ export function Contact() {
           <span className={styles.titleHeavy}>{contact.title[1].text}</span>
         </h2>
 
-        {/* Conteúdo revelado */}
-        <div ref={revealRef} className={styles.body}>
+        {/* seção 5 espelhada: texto da esquerda, canais e campos sobem */}
+        <div className={styles.body}>
           {/* Coluna esquerda: canais + relógios */}
           <div className={styles.left}>
-            <p className={styles.lead} style={{ '--i': 0 } as CSSProperties}>
+            <p className={styles.lead} data-reveal="left">
               {contact.lead}
             </p>
 
@@ -131,7 +111,8 @@ export function Contact() {
                 <li
                   key={ch.label}
                   className={styles.channel}
-                  style={{ '--i': i + 1 } as CSSProperties}
+                  data-reveal="up"
+                  style={{ '--reveal-delay': `${(i + 1) * 90}ms` } as CSSProperties}
                 >
                   <a
                     href={ch.href}
@@ -161,7 +142,8 @@ export function Contact() {
 
             <div
               className={styles.clocks}
-              style={{ '--i': channels.length + 1 } as CSSProperties}
+              data-reveal="up"
+              style={{ '--reveal-delay': `${(channels.length + 1) * 90}ms` } as CSSProperties}
             >
               <span className={styles.clock}>
                 MARINGÁ <span className={styles.clockTime}>{maringaTime}</span>
@@ -179,7 +161,7 @@ export function Contact() {
             noValidate
           >
             {/* Nome */}
-            <div className={styles.field} style={{ '--i': 1 } as CSSProperties}>
+            <div className={styles.field} data-reveal="up" style={{ '--reveal-delay': '0ms' } as CSSProperties}>
               <label className={styles.fieldLabel} htmlFor="contact-name">
                 Nome
               </label>
@@ -203,7 +185,7 @@ export function Contact() {
             </div>
 
             {/* Tipo de projeto */}
-            <fieldset className={styles.fieldset} style={{ '--i': 2 } as CSSProperties}>
+            <fieldset className={styles.fieldset} data-reveal="up" style={{ '--reveal-delay': '90ms' } as CSSProperties}>
               <legend className={styles.fieldLabel}>Tipo de projeto</legend>
               <div className={styles.chips}>
                 {contact.projectTypes.map((type) => (
@@ -223,7 +205,7 @@ export function Contact() {
             </fieldset>
 
             {/* Orçamento */}
-            <fieldset className={styles.fieldset} style={{ '--i': 3 } as CSSProperties}>
+            <fieldset className={styles.fieldset} data-reveal="up" style={{ '--reveal-delay': '180ms' } as CSSProperties}>
               <legend className={styles.fieldLabel}>Orçamento estimado</legend>
               <div className={styles.chips}>
                 {contact.budgets.map((b) => (
@@ -243,7 +225,7 @@ export function Contact() {
             </fieldset>
 
             {/* Mensagem */}
-            <div className={styles.field} style={{ '--i': 4 } as CSSProperties}>
+            <div className={styles.field} data-reveal="up" style={{ '--reveal-delay': '270ms' } as CSSProperties}>
               <label className={styles.fieldLabel} htmlFor="contact-message">
                 Mensagem
               </label>
@@ -266,7 +248,7 @@ export function Contact() {
             </div>
 
             {/* Enviar */}
-            <div className={styles.submitRow} style={{ '--i': 5 } as CSSProperties}>
+            <div className={styles.submitRow} data-reveal="up" style={{ '--reveal-delay': '360ms' } as CSSProperties}>
               <Button as="button" type="submit" variant="primary">
                 Enviar pelo WhatsApp ↗
               </Button>

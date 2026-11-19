@@ -11,9 +11,11 @@ import { Preloader } from './components/Preloader'
 import { Process } from './components/Process'
 import { Services } from './components/Services'
 import { LoaderProvider, useLoader } from './context/LoaderContext'
+import { useRevealAll } from './hooks/useRevealAll'
 
 function Site() {
   const { isDone } = useLoader()
+  useRevealAll()
 
   return (
     <>

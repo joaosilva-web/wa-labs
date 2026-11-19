@@ -57,10 +57,8 @@ const clamp01 = (n: number) => Math.min(1, Math.max(0, n))
 
 export function About() {
   const sectionRef = useRef<HTMLElement>(null)
-  const bodyRef = useRef<HTMLDivElement>(null)
   const photoColRef = useRef<HTMLDivElement>(null)
   const titleRef = useRef<HTMLHeadingElement>(null)
-  const factsRef = useRef<HTMLDListElement>(null)
   const whyAreaRef = useRef<HTMLDivElement>(null)
   const whyStickyRef = useRef<HTMLDivElement>(null)
   const whySvgRef = useRef<SVGSVGElement>(null)
@@ -111,22 +109,7 @@ export function About() {
   /* --- 2. Progresso geral da seção para o parallax da foto ----------- */
   useViewProgress(sectionRef, { varName: '--section-p', start: 1.0, end: 0.0 })
 
-  /* --- 3. Reveal do body: IntersectionObserver (uma vez) ------------- */
-  useEffect(() => {
-    const el = bodyRef.current
-    if (!el) return
-    if (reduced) { el.setAttribute('data-revealed', ''); return }
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting) return
-        el.setAttribute('data-revealed', '')
-        io.disconnect()
-      },
-      { rootMargin: '0px 0px -10% 0px' },
-    )
-    io.observe(el)
-    return () => io.disconnect()
-  }, [reduced])
+  /* --- 3. Reveal: feito pelo sistema global (data-reveal nos elementos) ---------- */
 
   /* --- 4. Título: peso variável por proximidade (desktop) ------------ */
   useProximityWeight(titleRef, {
@@ -166,22 +149,7 @@ export function About() {
     }
   }, [hasPointer, reduced])
 
-  /* --- 6. Fatos: scaleX das bordas + fade dos textos (uma vez) ------- */
-  useEffect(() => {
-    const el = factsRef.current
-    if (!el) return
-    if (reduced) { el.setAttribute('data-revealed', ''); return }
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting) return
-        el.setAttribute('data-revealed', '')
-        io.disconnect()
-      },
-      { rootMargin: '0px 0px -20% 0px' },
-    )
-    io.observe(el)
-    return () => io.disconnect()
-  }, [reduced])
+  /* --- 6. Fatos: bordas via data-reveal no sistema global ------------ */
 
   /* --- 7. Espiral: comprimento em px (recalcula no resize) -----------
      Com vector-effect: non-scaling-stroke, strokeDasharray e --spiral-len
@@ -289,7 +257,7 @@ export function About() {
           tone="dark"
         />
 
-        <div ref={bodyRef} className={styles.body}>
+        <div className={styles.body}>
           {/* ---- Coluna da foto ---- */}
           <div ref={photoColRef} className={styles.photoCol}>
             {/* sombra fora do clip-path da pílula: inclina junto e se desloca com o tilt */}
@@ -336,7 +304,8 @@ export function About() {
 
           {/* ---- Coluna de texto ---- */}
           <div className={styles.textCol}>
-            <h2 ref={titleRef} className={styles.title} style={{ '--i': 1 } as CSSProperties}>
+            {/* seção 3 espelhada: título da direita, texto da esquerda */}
+            <h2 ref={titleRef} className={styles.title} data-reveal="right" data-reveal-title="">
               {/* Span leve: letras individuais com data-wave para o efeito de peso */}
               <span className={styles.light} aria-hidden="true">
                 {letterSpans(about.title[0].text)}
@@ -350,18 +319,21 @@ export function About() {
               <p
                 key={i}
                 className={styles.paragraph}
-                style={{ '--i': i + 2 } as CSSProperties}
+                data-reveal="left"
+                style={{ '--reveal-delay': `${i * 90}ms` } as CSSProperties}
               >
                 {p}
               </p>
             ))}
 
-            <dl
-              ref={factsRef}
-              className={styles.facts}
-            >
+            <dl className={styles.facts}>
               {about.facts.map((fact, i) => (
-                <div key={fact.label} className={styles.fact} style={{ '--i-fact': i } as CSSProperties}>
+                <div
+                  key={fact.label}
+                  className={styles.fact}
+                  data-reveal="up"
+                  style={{ '--i-fact': i, '--reveal-delay': `${i * 90}ms` } as CSSProperties}
+                >
                   <dt className={styles.factLabel}>{fact.label}</dt>
                   <dd className={styles.factValue}>{fact.value}</dd>
                 </div>

@@ -1,5 +1,6 @@
 @import './fonts.css';
 @import './tokens.css';
+@import './reveal.css';
 
 /* ---------- custom properties registradas para transição ----------------------
  * @property permite ao navegador interpolar variáveis CSS como valores tipados.
@@ -45,6 +46,11 @@ html {
   /* o preloader trava o scroll com overflow: hidden; o gutter fixo evita que o layout
      (e a pílula da hero, alvo do fechamento) ande quando a barra de rolagem volta */
   scrollbar-gutter: stable;
+}
+
+/* evita rolagem horizontal causada por deslizes laterais das animações de entrada */
+main {
+  overflow-x: clip;
 }
 
 body {

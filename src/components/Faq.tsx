@@ -1,59 +1,19 @@
-import { useEffect, useRef, type CSSProperties } from 'react'
+import { useRef, type CSSProperties } from 'react'
 import { faq, sections } from '../data/content'
-import { REDUCED_MOTION, useMediaQuery } from '../hooks/useMediaQuery'
 import { useViewProgress } from '../hooks/useViewProgress'
 import { RollText } from './RollText'
 import { SectionMeta } from './SectionMeta'
 import styles from './Faq.module.css'
 
+// FAQ: seção 4 (par → normal): título da esquerda, texto da direita.
+// Itens alternam esquerda/direita.
+const ITEM_DIR = ['left', 'right'] as const
+
 export function Faq() {
-  const bodyRef = useRef<HTMLDivElement>(null)
   const listColRef = useRef<HTMLDivElement>(null)
-  const reduced = useMediaQuery(REDUCED_MOTION)
 
-  /* --- Reveal inicial do body (uma vez) ----------------------------- */
-  useEffect(() => {
-    const el = bodyRef.current
-    if (!el) return
-    if (reduced) { el.setAttribute('data-revealed', ''); return }
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting) return
-        el.setAttribute('data-revealed', '')
-        io.disconnect()
-      },
-      { rootMargin: '0px 0px -10% 0px' },
-    )
-    io.observe(el)
-    return () => io.disconnect()
-  }, [reduced])
-
-  /* --- --faq (0→1) na listCol: impulsiona peso do título e barra ----- */
+  /* --faq (0→1) na listCol: impulsiona peso do título e barra de progresso */
   useViewProgress(listColRef, { varName: '--faq', start: 0.9, end: 0.1 })
-
-  /* --- Entrada por item: cada <details> tem seu próprio IO ----------- */
-  useEffect(() => {
-    const listCol = listColRef.current
-    if (!listCol) return
-    const items = [...listCol.querySelectorAll<HTMLElement>(`.${styles.item}`)]
-    if (reduced) {
-      items.forEach((el) => el.setAttribute('data-revealed', ''))
-      return
-    }
-    const observers = items.map((el) => {
-      const io = new IntersectionObserver(
-        ([entry]) => {
-          if (!entry.isIntersecting) return
-          el.setAttribute('data-revealed', '')
-          io.disconnect()
-        },
-        { rootMargin: '0px 0px -8% 0px' },
-      )
-      io.observe(el)
-      return io
-    })
-    return () => observers.forEach((io) => io.disconnect())
-  }, [reduced])
 
   return (
     <section id="duvidas" className={styles.faq} data-tone="light">
@@ -65,10 +25,11 @@ export function Faq() {
           tone="light"
         />
 
-        <div ref={bodyRef} className={styles.body}>
-          {/* Título — sticky na desktop, peso do .heavy cresce com --faq */}
-          <div className={styles.titleCol} style={{ '--i': 0 } as CSSProperties}>
-            <h2 className={styles.title}>
+        <div className={styles.body}>
+          {/* Título — sticky na desktop; .titleCol não recebe data-reveal (é sticky).
+              O h2 dentro recebe: seção 4 normal → título da esquerda. */}
+          <div className={styles.titleCol}>
+            <h2 className={styles.title} data-reveal="left" data-reveal-title="">
               {faq.title.map((seg, i) => (
                 <span key={i} className={seg.weight === 'light' ? styles.light : styles.heavy}>
                   {seg.text}
@@ -86,7 +47,8 @@ export function Faq() {
               <details
                 key={i}
                 className={styles.item}
-                style={{ '--i': i + 1 } as CSSProperties}
+                data-reveal={ITEM_DIR[i % 2]}
+                style={{ '--reveal-delay': `${i * 90}ms` } as CSSProperties}
               >
                 {/*
                   data-roll: ativa o RollText no hover (via CSS selector
@@ -106,7 +68,12 @@ export function Faq() {
               </details>
             ))}
 
-            <p className={styles.footer} style={{ '--i': faq.items.length + 1 } as CSSProperties}>
+            {/* texto da direita (seção 4 normal) */}
+            <p
+              className={styles.footer}
+              data-reveal="right"
+              style={{ '--reveal-delay': `${faq.items.length * 90}ms` } as CSSProperties}
+            >
               {faq.footer.text}{' '}
               <a href={faq.footer.href} className={styles.footerLink} data-cursor="hover">
                 <RollText>{faq.footer.cta}</RollText>
