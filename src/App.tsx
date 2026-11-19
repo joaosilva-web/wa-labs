@@ -12,10 +12,12 @@ import { Process } from './components/Process'
 import { Services } from './components/Services'
 import { LoaderProvider, useLoader } from './context/LoaderContext'
 import { useRevealAll } from './hooks/useRevealAll'
+import { useSmoothScroll } from './hooks/useSmoothScroll'
 
 function Site() {
   const { isDone } = useLoader()
   useRevealAll()
+  useSmoothScroll()
 
   return (
     <>

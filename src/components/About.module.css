@@ -328,9 +328,12 @@
 }
 
 /* ---------- bloco "Por que Wa?" — área tall com conteúdo sticky ---------- */
+/* --why-pin-length: ajuste a duração da pausa sticky aqui */
 .whyArea {
+  --why-pin-length: 240svh;
+
   position: relative;
-  height: 180svh;
+  height: var(--why-pin-length);
   margin-top: var(--space-12);
 }
 

@@ -1,6 +1,6 @@
-import { useEffect, useRef, type CSSProperties } from 'react'
+import { useEffect, useRef, type CSSProperties, type MouseEvent } from 'react'
 import { contact, nav, sections, type SectionId } from '../data/content'
-import { REDUCED_MOTION, useMediaQuery } from '../hooks/useMediaQuery'
+import { scrollToSection, scrollToTop as lenisScrollToTop } from '../lenis'
 import { useProximityWeight } from '../hooks/useProximityWeight'
 import { Logo } from './Logo'
 import { RollText } from './RollText'
@@ -11,7 +11,6 @@ const pad = (n: number) => String(n).padStart(2, '0')
 export function Footer() {
   const footerRef = useRef<HTMLElement>(null)
   const brandRef = useRef<HTMLDivElement>(null)
-  const reduced = useMediaQuery(REDUCED_MOTION)
   const year = new Date().getFullYear()
 
   // peso variável por proximidade nas letras da marca gigante (300 → 900)
@@ -61,8 +60,9 @@ export function Footer() {
     return () => ro.disconnect()
   }, [])
 
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: reduced ? 'instant' : 'smooth' })
+  const handleNavLink = (e: MouseEvent<HTMLAnchorElement>, href: string) => {
+    e.preventDefault()
+    scrollToSection(href)
   }
 
   // Canais sem href são decorativos e não renderizam link
@@ -88,7 +88,7 @@ export function Footer() {
             <ul className={styles.colLinks}>
               {nav.map((item) => (
                 <li key={item.href}>
-                  <a href={item.href} className={styles.colLink}>
+                  <a href={item.href} className={styles.colLink} onClick={(e) => handleNavLink(e, item.href)}>
                     <RollText>
                       <span className={styles.num}>
                         {pad(sections[item.section as SectionId])}
@@ -123,7 +123,7 @@ export function Footer() {
           {/* 4. Voltar ao topo */}
           <div className={styles.col} data-reveal="up" style={{ '--reveal-delay': '270ms' } as CSSProperties}>
             <p className={styles.colLabel}>Mais</p>
-            <button onClick={scrollToTop} className={styles.topBtn}>
+            <button onClick={lenisScrollToTop} className={styles.topBtn}>
               <RollText>Voltar ao topo ↑</RollText>
             </button>
           </div>

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { KANJI_TRANSFORM, LOGO_PILL, LOGO_VIEWBOX } from '../assets/logoStrokes'
 import { useLoader } from '../context/LoaderContext'
 import { heroReel, preloader as copy } from '../data/content'
+import { lenis } from '../lenis'
 import { KanjiStrokes, type KanjiStrokesHandle } from './KanjiStrokes'
 import styles from './Preloader.module.css'
 
@@ -83,6 +84,7 @@ export function Preloader() {
 
     // ----- trava o scroll e começa do topo -----
     if ('scrollRestoration' in history) history.scrollRestoration = 'manual'
+    lenis?.stop()
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
     html.style.overflow = 'hidden'
     // o gutter reservado da barra de rolagem pinta o fundo do html: escuro como o loader
@@ -90,6 +92,7 @@ export function Preloader() {
     const unlock = () => {
       html.style.removeProperty('overflow')
       html.style.removeProperty('background')
+      lenis?.start()
     }
 
     // ----- traços: comprimento real de cada path -----

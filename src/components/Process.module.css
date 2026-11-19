@@ -245,9 +245,10 @@
 .process[data-pinned] {
   --num: clamp(6rem, min(14vw, 24svh), 14rem);
   --pill-h: clamp(3.5rem, 11svh, 6.5rem);
+  /* --panel-svh: scroll por painel (abertura + cada etapa). Aumente para pausas mais longas. */
+  --panel-svh: 130svh;
 
-  /* ~1 tela de scroll por painel (abertura + etapas) */
-  height: calc(var(--panels) * 100svh);
+  height: calc(var(--panels) * var(--panel-svh));
   padding: 0;
 }
 

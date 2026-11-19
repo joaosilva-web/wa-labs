@@ -42,7 +42,7 @@
 }
 
 html {
-  scroll-behavior: smooth;
+  /* scroll-behavior gerenciado pelo Lenis; Lenis não inicializa com prefers-reduced-motion */
   /* o preloader trava o scroll com overflow: hidden; o gutter fixo evita que o layout
      (e a pílula da hero, alvo do fechamento) ande quando a barra de rolagem volta */
   scrollbar-gutter: stable;
@@ -123,9 +123,6 @@ button {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
   *,
   *::before,
   *::after {

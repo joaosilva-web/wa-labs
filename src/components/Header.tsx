@@ -1,5 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type MouseEvent } from 'react'
 import { nav, sectionNumber } from '../data/content'
+import { scrollToSection } from '../lenis'
 import { useHeaderTone } from '../hooks/useHeaderTone'
 import { useMediaQuery } from '../hooks/useMediaQuery'
 import { Button } from './Button'
@@ -73,12 +74,18 @@ export function Header() {
 
   const close = () => setOpen(false)
 
+  const handleNav = (e: MouseEvent<HTMLAnchorElement>, href: string) => {
+    e.preventDefault()
+    close()
+    scrollToSection(href)
+  }
+
   const navigation = (
     <nav className={styles.nav} aria-label="Principal">
       <ul>
         {nav.map((item) => (
           <li key={item.href}>
-            <a href={item.href} onClick={close}>
+            <a href={item.href} onClick={(e) => handleNav(e, item.href)}>
               <sup className={styles.num} aria-hidden="true">
                 {sectionNumber(item.section)}
               </sup>
@@ -87,7 +94,7 @@ export function Header() {
           </li>
         ))}
       </ul>
-      <Button href="#contato" className={styles.cta} onClick={close}>
+      <Button href="#contato" className={styles.cta} onClick={(e) => handleNav(e as MouseEvent<HTMLAnchorElement>, '#contato')}>
         Orçamento
       </Button>
     </nav>

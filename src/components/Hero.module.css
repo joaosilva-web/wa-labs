@@ -15,7 +15,7 @@
 .hero {
   /* espaço da cápsula do header (fixed): 16px do topo + 64px de altura */
   --header-h: 80px;
-  --pin-length: 280svh;
+  --pin-length: 360svh;
   --shift1: -60vw;
   --shift2: 40vw;
   --shift3: -15vw;
