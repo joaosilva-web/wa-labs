@@ -1,105 +1,59 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties, type FocusEvent } from 'react'
 import { process, processSection as copy, sections } from '../data/content'
 import { scrollToY } from '../lenis'
-import { FINE_POINTER, REDUCED_MOTION, useMediaQuery } from '../hooks/useMediaQuery'
-import { useCardTilt } from '../hooks/useCardTilt'
+import { REDUCED_MOTION, useMediaQuery } from '../hooks/useMediaQuery'
+import { useGlassShine } from '../hooks/useGlassShine'
 import { useScrollProgress } from '../hooks/useScrollProgress'
 import { useViewProgress } from '../hooks/useViewProgress'
-import { LiquidGlass } from './LiquidGlass'
 import { SectionMeta } from './SectionMeta'
 import styles from './Process.module.css'
+import gfStyles from '../styles/glass-finish.module.css'
 
 const pad = (n: number) => String(n).padStart(2, '0')
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n))
 
 /* ---------------------------------------------------------------
  * StepItem — subcomponente isolado para que cada etapa tenha seus
- * próprios hooks de tilt (número e pílula independentes).
+ * próprios hooks de useGlassShine (número e pílula independentes).
  * ------------------------------------------------------------- */
 type StepItemProps = {
   item: (typeof process)[number]
   index: number
   isActive: boolean
   pinned: boolean
-  scrolling: boolean
 }
 
-function StepItem({ item, isActive, pinned, scrolling }: StepItemProps) {
-  const fine = useMediaQuery(FINE_POINTER)
-  const reduced = useMediaQuery(REDUCED_MOTION)
-
-  // Mantém o vidro montado enquanto --active transiciona de volta a 0 (~600ms)
-  const wasActiveRef = useRef(false)
-  const [showGlass, setShowGlass] = useState(false)
-
-  useEffect(() => {
-    if (!pinned) {
-      // Mobile/reduced: nunca mostra vidro
-      setShowGlass(false)
-      wasActiveRef.current = false
-      return
-    }
-    if (isActive) {
-      wasActiveRef.current = true
-      setShowGlass(true)
-    } else if (wasActiveRef.current) {
-      const t = setTimeout(() => {
-        wasActiveRef.current = false
-        setShowGlass(false)
-      }, 650)
-      return () => clearTimeout(t)
-    }
-  }, [isActive, pinned])
-
+function StepItem({ item, isActive, pinned }: StepItemProps) {
   const numberRef = useRef<HTMLDivElement>(null)
-  const pillRef = useRef<HTMLDivElement>(null)
+  const pillRef = useRef<HTMLSpanElement>(null)
 
-  const tiltOn = showGlass && !reduced
-  useCardTilt(numberRef, { enabled: tiltOn })
-  useCardTilt(pillRef, { enabled: tiltOn, maxRY: 8, maxRX: 6 })
+  useGlassShine(numberRef)
+  useGlassShine(pillRef)
 
   return (
     <li
       className={styles.step}
       data-active={!pinned || isActive || undefined}
     >
-      {/* Número gigante */}
+      {/* Número gigante: outline → sólido conforme --active */}
       <div ref={numberRef} className={styles.numberWrap}>
-        <div className={styles.numberTiltInner}>
-          <span className={styles.number} aria-hidden="true">
-            {item.step}
-          </span>
-          {showGlass && (
-            <span className={styles.numberGlass} aria-hidden="true">
-              {item.step}
-            </span>
-          )}
-          {showGlass && fine && !reduced && (
-            <div className={styles.numberGlare} aria-hidden="true" />
-          )}
-        </div>
+        <span className={styles.number} aria-hidden="true">
+          {item.step}
+        </span>
+        <span className={styles.numberGlass} aria-hidden="true">
+          {item.step}
+        </span>
       </div>
 
       {/* Kanji + leitura */}
       <div className={styles.kanjiRow}>
-        <div ref={pillRef} className={styles.pillTiltOuter}>
-          <div className={styles.pillTiltInner}>
-            {showGlass ? (
-              <LiquidGlass
-                className={styles.pillGlass}
-                bevel={48}
-                scale={28}
-                refraction={!scrolling}
-              >
-                <span className={styles.kanji}>{item.kanji}</span>
-              </LiquidGlass>
-            ) : (
-              <span className={styles.pill} aria-hidden="true">
-                <span className={styles.kanji}>{item.kanji}</span>
-              </span>
-            )}
-          </div>
-        </div>
+        <span
+          ref={pillRef}
+          className={`${styles.pill} ${gfStyles.glassFinish}`}
+          aria-hidden="true"
+        >
+          <span className={styles.kanji}>{item.kanji}</span>
+        </span>
         <span className={styles.reading}>
           <span lang="ja-Latn">{item.reading}</span> · {item.meaning}
         </span>
@@ -157,11 +111,6 @@ export function Process() {
   const progress = useRef(0)
   const activeRef = useRef(0)
   const [active, setActive] = useState(0)
-
-  // Rastrea se o trilho está se movendo (debounce 150ms) → pílula usa vidro fosco durante o scroll
-  const scrollingRef = useRef(false)
-  const scrollTimerRef = useRef(0)
-  const [scrolling, setScrolling] = useState(false)
 
   const total = process.length
 
@@ -227,16 +176,6 @@ export function Process() {
       progress.current = p
       sticky.style.setProperty('--p', p.toFixed(4))
       pickActive(p)
-      // Debounce: scroll ativo → pílula usa frosted; parado → refração completa
-      if (!scrollingRef.current) {
-        scrollingRef.current = true
-        setScrolling(true)
-      }
-      clearTimeout(scrollTimerRef.current)
-      scrollTimerRef.current = window.setTimeout(() => {
-        scrollingRef.current = false
-        setScrolling(false)
-      }, 150)
     },
     { pinnedRef: stickyRef, enabled: pinned },
   )
@@ -319,7 +258,6 @@ export function Process() {
                   index={i}
                   isActive={i === active}
                   pinned={pinned}
-                  scrolling={scrolling}
                 />
               ))}
             </ol>

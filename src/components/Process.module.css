@@ -150,16 +150,11 @@
   background: var(--color-primary);
 }
 
-/* ---------- número: wrapper e tilt inner ---------- */
+/* ---------- número: wrapper + crossfade outline → sólido com acabamento ---------- */
 .numberWrap {
   position: relative;
   display: block;
-}
-
-.numberTiltInner {
-  position: relative;
-  transform: perspective(600px) rotateX(calc(var(--rx, 0) * 1deg)) rotateY(calc(var(--ry, 0) * 1deg));
-  will-change: transform;
+  /* --mx do useGlassShine herda para o .numberGlass filho */
 }
 
 /* Outline (inativa): some quando --active → 1 */
@@ -175,7 +170,17 @@
   opacity: calc(1 - var(--active));
 }
 
-/* Vidro (ativa): aparece quando --active → 1 */
+/*
+ * Acabamento sólido (ativa): algarismos preenchidos com --color-text + arco de reflexo.
+ * background-clip: text clippa tanto background-color quanto background-image ao contorno dos caracteres.
+ * Camadas (de cima pra baixo dentro do texto):
+ *   1. arco elíptico seguindo --mx (mesmo mecanismo do botão, mas como gradiente de bg)
+ *   2. gradiente de luz (branco → transparente em 55%, igual ao botão)
+ *   3. escurecimento sutil na base (simulando a sombra inset inferior do botão)
+ *   4. background-color: --color-text (preto — a cor base dos algarismos)
+ * filter: drop-shadow → equivalente à sombra externa do botão, e 2.º drop-shadow
+ *   simula o fio de luz no topo (exibido fora dos caracteres mas imperceptível).
+ */
 .numberGlass {
   position: absolute;
   inset: 0;
@@ -185,27 +190,17 @@
   font-weight: 900;
   line-height: 0.8;
   letter-spacing: -0.04em;
-  color: rgb(255 255 255 / 0.22);
-  -webkit-text-stroke: 1px rgb(255 255 255 / 0.4);
-  text-shadow:
-    0 1px 2px rgb(255 255 255 / 0.9),
-    0 2px 10px rgb(0 0 0 / 0.08);
-  filter: drop-shadow(0 3px 14px rgb(0 0 0 / 0.12));
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  background-color: var(--color-text);
+  background-image:
+    radial-gradient(ellipse 55% 45% at calc(var(--mx, 0.5) * 100%) 20%, rgb(255 255 255 / 0.38) 0%, transparent 60%),
+    linear-gradient(to bottom, rgb(255 255 255 / 0.22), rgb(255 255 255 / 0) 55%),
+    linear-gradient(to top, rgb(0 0 0 / 0.05), transparent 40%);
+  filter: drop-shadow(0 2px 8px rgb(0 0 0 / 0.12)) drop-shadow(0 -1px 0 rgb(255 255 255 / 0.28));
   pointer-events: none;
   opacity: var(--active);
-}
-
-/* Arco de luz seguindo o cursor (--gx/--gy/--gsx de useCardTilt) */
-.numberGlare {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: calc(var(--tilt, 0) * 0.5);
-  background: radial-gradient(
-    ellipse calc(var(--gsx, 1) * 55%) 45% at calc(var(--gx, 0.5) * 100%) calc(var(--gy, 0.5) * 100%),
-    rgb(255 255 255 / 0.4) 0%,
-    transparent 70%
-  );
 }
 
 .kanjiRow {
@@ -216,49 +211,23 @@
   margin-top: var(--space-6);
 }
 
-/* ---------- pílula: wrapper de tilt ---------- */
-.pillTiltOuter {
-  position: relative;
-  z-index: 1;
-  display: inline-block;
-  transform-origin: left center;
-}
-
-.pillTiltInner {
-  transform: perspective(400px) rotateX(calc(var(--rx, 0) * 1deg)) rotateY(calc(var(--ry, 0) * 1deg));
-  will-change: transform;
-}
-
-/* mesmo formato da pílula da hero; kanji escuro sobre o verde (verde direto no claro não tem contraste) */
+/*
+ * Pílula do kanji — mesmo acabamento do botão primário via glassFinish.
+ * --gf-base segue --pill-bg (já transiciona com --fade): inativa = verde claro,
+ * ativa = --color-primary completo. O reflexo (::after) segue --mx do useGlassShine.
+ */
 .pill {
+  position: relative;
+  z-index: 1; /* fica à frente da linha do tempo (.steps::before) */
   display: grid;
   place-items: center;
   height: var(--pill-h);
   aspect-ratio: 2.2;
   border-radius: var(--radius-pill);
-  background: var(--pill-bg);
+  /* background-color vem do .glassFinish via --gf-base; background (shorthand) não pode ser usado */
+  --gf-base: var(--pill-bg);
   color: var(--pill-ink);
-  transition: scale 400ms var(--ease);
-}
-
-/* Pílula de vidro (LiquidGlass) — dimensões idênticas à .pill */
-.pillGlass {
-  display: grid;
-  place-items: center;
-  height: var(--pill-h);
-  aspect-ratio: 2.2;
-  border-radius: var(--radius-pill);
-  color: var(--color-on-primary);
-  /* Material de vidro verde derivado de --active */
-  --lg-tint: color-mix(in srgb, var(--color-primary) calc(var(--active) * 75%), transparent);
-  --lg-tint-highlight: color-mix(in srgb, var(--color-primary) calc(var(--active) * 55%), transparent);
-  --lg-rim-top: rgb(255 255 255 / calc(var(--active) * 0.75));
-  --lg-rim-outline: rgb(255 255 255 / calc(var(--active) * 0.3));
-  --lg-shine: var(--active);
-  --lg-fallback-blur: calc(var(--active) * 14px);
-  --lg-fallback-saturate: 1.6;
-  --lg-blur: 1px;
-  --lg-saturate: 1.3;
+  transition: scale 400ms var(--ease), box-shadow 0.2s var(--ease);
 }
 
 .kanji {
@@ -415,15 +384,6 @@
   scale: 1;
 }
 
-/* Escala da pílula de vidro — só no wraper externo (não na LiquidGlass) */
-.process[data-pinned] .pillTiltOuter {
-  scale: 0.9;
-  transition: scale 400ms var(--ease);
-}
-
-.process[data-pinned] .step[data-active] .pillTiltOuter {
-  scale: 1;
-}
 
 /* ---------- barra de progresso ---------- */
 .bar {
