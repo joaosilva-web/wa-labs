@@ -1,6 +1,6 @@
-import { useEffect, useRef, type CSSProperties, type MouseEvent } from 'react'
+import { useEffect, useRef, type CSSProperties } from 'react'
 import { contact, nav, sections, type SectionId } from '../data/content'
-import { scrollToSection, scrollToTop as lenisScrollToTop } from '../lenis'
+import { scrollToTop as lenisScrollToTop } from '../lenis'
 import { useProximityWeight } from '../hooks/useProximityWeight'
 import { Logo } from './Logo'
 import { RollText } from './RollText'
@@ -60,11 +60,6 @@ export function Footer() {
     return () => ro.disconnect()
   }, [])
 
-  const handleNavLink = (e: MouseEvent<HTMLAnchorElement>, href: string) => {
-    e.preventDefault()
-    scrollToSection(href)
-  }
-
   // Canais sem href são decorativos e não renderizam link
   const channels = contact.channels.filter((ch) => ch.href)
 
@@ -88,7 +83,7 @@ export function Footer() {
             <ul className={styles.colLinks}>
               {nav.map((item) => (
                 <li key={item.href}>
-                  <a href={item.href} className={styles.colLink} onClick={(e) => handleNavLink(e, item.href)}>
+                  <a href={item.href} className={styles.colLink}>
                     <RollText>
                       <span className={styles.num}>
                         {pad(sections[item.section as SectionId])}

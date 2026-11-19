@@ -2,9 +2,13 @@
  * Singleton do Lenis — criado uma vez, antes de qualquer componente montar.
  * Null quando o usuário prefere movimento reduzido (rolagem nativa).
  *
- * Outros módulos importam `lenis` para chamar scrollTo, stop e start.
+ * `anchors: { offset: HEADER_OFFSET }` intercepta todos os links `href="#..."`
+ * da página automaticamente, sem onClick em cada componente.
  */
 import Lenis from 'lenis'
+
+/** Header: TOP (16) + HEIGHT (64) = 80px */
+const HEADER_OFFSET = -80
 
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -14,35 +18,16 @@ export const lenis = reduced
       lerp: 0.09,
       wheelMultiplier: 0.9,
       smoothWheel: true,
-      syncTouch: false,   // celular: rolagem nativa
+      syncTouch: false,                       // celular: rolagem nativa
+      anchors: { offset: HEADER_OFFSET },     // intercepta <a href="#..."> globalmente
     })
-
-/** Header: TOP (16) + HEIGHT (64) = 80px */
-const HEADER_OFFSET = -80
-
-/**
- * Rola suavemente até um id de seção (`#servicos`, `#contato`, etc.),
- * atualiza o hash sem pulo nativo e aplica o offset do header.
- */
-export function scrollToSection(hash: string) {
-  history.pushState(null, '', hash)
-  if (lenis) {
-    lenis.scrollTo(hash, { offset: HEADER_OFFSET })
-  } else {
-    const el = document.querySelector(hash)
-    if (el) {
-      const y = el.getBoundingClientRect().top + window.scrollY + HEADER_OFFSET
-      window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' })
-    }
-  }
-}
 
 /** Rola até o topo da página. */
 export function scrollToTop() {
   if (lenis) {
     lenis.scrollTo(0)
   } else {
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    window.scrollTo({ top: 0, behavior: 'auto' })
   }
 }
 

@@ -84,6 +84,9 @@ export function Preloader() {
 
     // ----- trava o scroll e começa do topo -----
     if ('scrollRestoration' in history) history.scrollRestoration = 'manual'
+    // Sincroniza a posição virtual da Lenis com 0 antes de parar,
+    // pra ela não tentar voltar pra posição antiga quando iniciar de novo
+    lenis?.scrollTo(0, { immediate: true, force: true })
     lenis?.stop()
     window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
     html.style.overflow = 'hidden'

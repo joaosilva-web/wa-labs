@@ -1,6 +1,5 @@
-import { useRef, type CSSProperties, type MouseEvent } from 'react'
+import { useRef, type CSSProperties } from 'react'
 import { faq, sections } from '../data/content'
-import { scrollToSection } from '../lenis'
 import { useViewProgress } from '../hooks/useViewProgress'
 import { RollText } from './RollText'
 import { SectionMeta } from './SectionMeta'
@@ -76,12 +75,7 @@ export function Faq() {
               style={{ '--reveal-delay': `${faq.items.length * 90}ms` } as CSSProperties}
             >
               {faq.footer.text}{' '}
-              <a
-                href={faq.footer.href}
-                className={styles.footerLink}
-                data-cursor="hover"
-                onClick={(e: MouseEvent<HTMLAnchorElement>) => { e.preventDefault(); scrollToSection(faq.footer.href) }}
-              >
+              <a href={faq.footer.href} className={styles.footerLink} data-cursor="hover">
                 <RollText>{faq.footer.cta}</RollText>
               </a>
             </p>

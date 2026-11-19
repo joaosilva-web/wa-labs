@@ -1,7 +1,6 @@
-import { Fragment, useCallback, useEffect, useRef, useState, type MouseEvent } from 'react'
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import { useLoader } from '../context/LoaderContext'
 import { hero, heroReel, type TitleSegment } from '../data/content'
-import { scrollToSection } from '../lenis'
 import { useClock } from '../hooks/useClock'
 import { REDUCED_MOTION, useMediaQuery } from '../hooks/useMediaQuery'
 import { useProximityWeight } from '../hooks/useProximityWeight'
@@ -232,17 +231,10 @@ export function Hero() {
             </div>
 
             <div className={styles.actions}>
-              <Button
-                href={hero.primaryCta.href}
-                onClick={(e: MouseEvent<HTMLAnchorElement>) => { e.preventDefault(); scrollToSection(hero.primaryCta.href) }}
-              >
+              <Button href={hero.primaryCta.href}>
                 {hero.primaryCta.label} <span aria-hidden="true">↗</span>
               </Button>
-              <Button
-                variant="link"
-                href={hero.secondaryCta.href}
-                onClick={(e: MouseEvent<HTMLAnchorElement>) => { e.preventDefault(); scrollToSection(hero.secondaryCta.href) }}
-              >
+              <Button variant="link" href={hero.secondaryCta.href}>
                 {hero.secondaryCta.label} <span aria-hidden="true">↓</span>
               </Button>
               <span className={styles.scroll} aria-hidden="true">
