@@ -32,9 +32,6 @@ export function useRevealAll() {
         el.style.transition = ''
       } else {
         el.setAttribute('data-revealed', '')
-        el.addEventListener('transitionend', () => {
-          el.style.willChange = ''
-        }, { once: true })
       }
     }
 
@@ -64,7 +61,6 @@ export function useRevealAll() {
       if (inViewport(el)) {
         revealEl(el, false)
       } else {
-        el.style.willChange = 'opacity, translate'
         io.observe(el)
       }
     }
