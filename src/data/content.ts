@@ -238,13 +238,13 @@ export const about = {
     { text: 'entende o problema.', weight: 'heavy' as const },
   ],
   paragraphs: [
-    'Sou desenvolvedor há 3 anos, entre sites, sistemas web e apps em Flutter. ' +
+    'Sou desenvolvedor há +5 anos, entre sites, sistemas web e apps. ' +
     'Criei a Wa Labs pra trabalhar do jeito que eu acredito: conversa direta, sem intermediário, ' +
-    'e cada projeto pensado do zero.',
-    'Quando você fala com a Wa Labs, fala comigo — quem desenha, escreve o código e coloca no ar.',
+    'e cada projeto pensado do zero para trazer hamonia para seu projeto e sua vida.',
+    'Quando você fala com a Wa Labs, fala comigo — quem desenha, planeja, escreve o código e coloca no ar.',
   ],
   facts: [
-    { label: 'Experiência', value: '3 anos' },
+    { label: 'Experiência', value: '+5 anos' },
     { label: 'Resposta', value: 'em até 1 dia útil' },
     { label: 'Atendimento', value: 'direto comigo' },
   ],
