@@ -1,19 +1,9 @@
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type CSSProperties,
-  type FocusEvent,
-} from 'react'
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type FocusEvent } from 'react'
 import { process, processSection as copy, sections } from '../data/content'
 import { scrollToY } from '../lenis'
 import { REDUCED_MOTION, useMediaQuery } from '../hooks/useMediaQuery'
 import { useScrollProgress } from '../hooks/useScrollProgress'
 import { useViewProgress } from '../hooks/useViewProgress'
-import { useCardTilt } from '../hooks/useCardTilt'
-import { LiquidGlass } from './LiquidGlass'
-import { GlassCard } from './GlassCard'
 import { SectionMeta } from './SectionMeta'
 import styles from './Process.module.css'
 
@@ -32,120 +22,6 @@ type Layout = {
   /** Valor de p em que cada etapa fica mais perto do centro (posição dos marcadores). */
   stops: number[]
   half: number
-}
-
-/* -----------------------------------------------------------------------
- * StepItem — uma etapa do processo, com vidro líquido na etapa ativa.
- *
- * Desktop (pinned): apenas a etapa ativa recebe LiquidGlass + GlassCard.
- * Mobile (!pinned): todas as etapas recebem LiquidGlass fosco (sem tilt).
- *
- * O tilt 3D (useCardTilt) ativa só na etapa ativa do desktop (fine pointer).
- * --------------------------------------------------------------------- */
-interface StepItemProps {
-  item: (typeof process)[0]
-  index: number
-  active: number
-  pinned: boolean
-  glassRefraction: boolean
-}
-
-function StepItem({ item, index, active, pinned, glassRefraction }: StepItemProps) {
-  const cardRef = useRef<HTMLDivElement>(null)
-  const isActive = index === active
-
-  /* showGlass: verdadeiro na etapa ativa E nos ~650ms após perder o foco, para
-     que o vidro se dissolva suavemente via --active 0→1→0 (600ms transition).
-     Mobile (!pinned): todas as etapas sempre com glass fosco. */
-  const [showGlass, setShowGlass] = useState(() => !pinned || isActive)
-  const wasActiveRef = useRef(isActive)
-  const fadeTimer = useRef<ReturnType<typeof setTimeout>>(0)
-
-  useEffect(() => {
-    clearTimeout(fadeTimer.current)
-
-    if (!pinned) {
-      setShowGlass(true)
-      wasActiveRef.current = false
-      return
-    }
-
-    if (isActive) {
-      setShowGlass(true)
-      wasActiveRef.current = true
-    } else if (wasActiveRef.current) {
-      // acabou de deixar de ser ativa: mantém o vidro por 650ms (duração do fade-out)
-      wasActiveRef.current = false
-      fadeTimer.current = setTimeout(() => setShowGlass(false), 650)
-    }
-  }, [isActive, pinned])
-
-  useEffect(() => () => clearTimeout(fadeTimer.current), [])
-
-  /* tilt + glare: só na etapa ativa do desktop com fine pointer */
-  const fine = useCardTilt(cardRef, { enabled: pinned && isActive })
-
-  return (
-    <li
-      className={styles.step}
-      data-active={!pinned || isActive || undefined}
-    >
-      <div ref={cardRef} className={styles.stepCard}>
-        {/* número gigante: fica na camada inferior (z-index auto),
-            o LiquidGlass (z-index: 1) fica na frente — vidro vê o bg da página */}
-        <span className={styles.number} aria-hidden="true">
-          {item.step}
-        </span>
-
-        {/* vidro: fosco no mobile, refração na etapa ativa do desktop parado */}
-        {showGlass && (
-          <LiquidGlass
-            className={styles.stepGlass}
-            refraction={pinned && isActive && glassRefraction}
-            blur={2}
-            saturate={1.1}
-            brightness={1.0}
-            fallbackBlur={8}
-            fallbackSaturate={1.6}
-            bevel={16}
-            scale={24}
-          />
-        )}
-
-        {/* conteúdo acima do vidro */}
-        <div className={styles.stepContent}>
-          <div className={styles.kanjiRow}>
-            <span className={styles.pill} aria-hidden="true">
-              <span className={styles.kanji}>{item.kanji}</span>
-            </span>
-            <span className={styles.reading}>
-              <span lang="ja-Latn">{item.reading}</span> · {item.meaning}
-            </span>
-          </div>
-
-          <div className={styles.body}>
-            <div>
-              <h3 className={styles.stepTitle}>
-                <span className={styles.srOnly}>{item.step}. </span>
-                {item.title}
-              </h3>
-              <p className={styles.description}>{item.description}</p>
-            </div>
-            <ul className={styles.deliverables}>
-              {item.deliverables.map((d) => (
-                <li key={d}>{d}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        {/* rim + reflexo líquido: só com fine pointer na etapa ativa */}
-        {showGlass && fine && (
-          <GlassCard className={styles.stepGlassOverlay} />
-        )}
-      </div>
-    </li>
-  )
 }
 
 /**
@@ -167,12 +43,6 @@ export function Process() {
   const progress = useRef(0)
   const activeRef = useRef(0)
   const [active, setActive] = useState(0)
-
-  /* refração do vidro: desliga enquanto o scroll está em movimento (desempenho),
-     religar 150ms depois de parar — o backdrop-filter volta suavemente via transition */
-  const [glassRefraction, setGlassRefraction] = useState(true)
-  const scrollTimer = useRef<ReturnType<typeof setTimeout>>(0)
-  const isScrollingRef = useRef(false)
 
   const total = process.length
 
@@ -238,17 +108,6 @@ export function Process() {
       progress.current = p
       sticky.style.setProperty('--p', p.toFixed(4))
       pickActive(p)
-
-      /* desempenho: fosco durante o scroll, refração depois de parar */
-      if (!isScrollingRef.current) {
-        isScrollingRef.current = true
-        setGlassRefraction(false)
-      }
-      clearTimeout(scrollTimer.current)
-      scrollTimer.current = window.setTimeout(() => {
-        isScrollingRef.current = false
-        setGlassRefraction(true)
-      }, 150)
     },
     { pinnedRef: stickyRef, enabled: pinned },
   )
@@ -263,9 +122,6 @@ export function Process() {
     activeRef.current = 0
     setActive(0)
   }, [pinned])
-
-  // cleanup do timer ao desmontar
-  useEffect(() => () => clearTimeout(scrollTimer.current), [])
 
   // mobile / reduced motion: a linha vertical se desenha com a lista (fica inteira no reduced)
   useViewProgress(listRef, { varName: '--line', start: 0.8, end: 0.6 })
@@ -328,14 +184,39 @@ export function Process() {
 
             <ol ref={listRef} className={styles.steps} onFocus={onFocus}>
               {process.map((item, i) => (
-                <StepItem
+                <li
                   key={item.step}
-                  item={item}
-                  index={i}
-                  active={active}
-                  pinned={pinned}
-                  glassRefraction={glassRefraction}
-                />
+                  className={styles.step}
+                  data-active={!pinned || i === active || undefined}
+                >
+                  <span className={styles.number} aria-hidden="true">
+                    {item.step}
+                  </span>
+
+                  <div className={styles.kanjiRow}>
+                    <span className={styles.pill} aria-hidden="true">
+                      <span className={styles.kanji}>{item.kanji}</span>
+                    </span>
+                    <span className={styles.reading}>
+                      <span lang="ja-Latn">{item.reading}</span> · {item.meaning}
+                    </span>
+                  </div>
+
+                  <div className={styles.body}>
+                    <div>
+                      <h3 className={styles.stepTitle}>
+                        <span className={styles.srOnly}>{item.step}. </span>
+                        {item.title}
+                      </h3>
+                      <p className={styles.description}>{item.description}</p>
+                    </div>
+                    <ul className={styles.deliverables}>
+                      {item.deliverables.map((d) => (
+                        <li key={d}>{d}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </li>
               ))}
             </ol>
           </div>
