@@ -53,7 +53,7 @@ export function useRevealAll() {
           revealEl(entry.target as HTMLElement, true)
         })
       },
-      { threshold: 0.15, rootMargin: '0px 0px -8% 0px' },
+      { threshold: 0, rootMargin: '0px 0px -8% 0px' },
     )
 
     const register = (el: HTMLElement) => {

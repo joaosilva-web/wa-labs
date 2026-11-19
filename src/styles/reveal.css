@@ -3,7 +3,7 @@
  *
  * Usage:
  *   data-reveal="left|right|up|down"   — direção de origem
- *   data-reveal-title + data-reveal     — h2 com clip-path adicional
+ *   data-reveal-title + data-reveal     — h2 com clip-path nos filhos
  *   --reveal-delay                      — atraso individual (opcional)
  *
  * Distâncias padrão: 64px (mobile: 32px); marca do footer: 120px via
@@ -15,14 +15,6 @@
   transition:
     opacity 900ms cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms),
     translate 900ms cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms);
-}
-
-/* Títulos: acrescenta clip-path à transição */
-[data-reveal][data-reveal-title] {
-  transition:
-    opacity 900ms cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms),
-    translate 900ms cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms),
-    clip-path 900ms cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms);
 }
 
 /* Estado inicial (oculto) */
@@ -41,22 +33,43 @@
   translate: 0 0;
 }
 
-/* ---- Títulos grandes: clip-path ("escrito" na direção do movimento) ---- */
-/* insets negativos (-0.35em) para não cortar acentos nem descendentes   */
+/* ---- Títulos grandes: clip-path nos filhos diretos ----
+ *
+ * O clip-path fica nos filhos (> *) para não afetar a caixa observada pelo IO.
+ * Spans srOnly são excluídos para não interferir na leitura por SR.
+ * insets negativos (-0.35em) evitam corte de acentos e descendentes.
+ * -------------------------------------------------------- */
 
-/* vem da esquerda → revela da esquerda pra direita: esconde pelo lado direito */
-[data-reveal="left"][data-reveal-title]:not([data-revealed]) {
+/* Transição de clip-path nos filhos, valendo nos dois estados */
+[data-reveal-title] > *:not([class*="srOnly"]) {
+  transition: clip-path 900ms cubic-bezier(0.16, 1, 0.3, 1) var(--reveal-delay, 0ms);
+}
+
+/* Stagger: cada linha seguinte atrasa mais 80ms */
+[data-reveal-title] > *:nth-child(2):not([class*="srOnly"]) {
+  transition-delay: calc(var(--reveal-delay, 0ms) + 80ms);
+}
+[data-reveal-title] > *:nth-child(3):not([class*="srOnly"]) {
+  transition-delay: calc(var(--reveal-delay, 0ms) + 160ms);
+}
+[data-reveal-title] > *:nth-child(4):not([class*="srOnly"]) {
+  transition-delay: calc(var(--reveal-delay, 0ms) + 240ms);
+}
+
+/* Estado inicial dos filhos:
+ * vem da esquerda → esconde pelo lado direito (revela esq→dir) */
+[data-reveal="left"][data-reveal-title]:not([data-revealed]) > *:not([class*="srOnly"]) {
   clip-path: inset(-0.35em 100% -0.35em -0.35em);
 }
 
-/* vem da direita → revela da direita pra esquerda: esconde pelo lado esquerdo */
-[data-reveal="right"][data-reveal-title]:not([data-revealed]) {
+/* vem da direita → esconde pelo lado esquerdo (revela dir→esq) */
+[data-reveal="right"][data-reveal-title]:not([data-revealed]) > *:not([class*="srOnly"]) {
   clip-path: inset(-0.35em -0.35em -0.35em 100%);
 }
 
-/* estado final: maior que a caixa, nada cortado */
-[data-reveal-title][data-revealed] {
-  clip-path: inset(-0.35em -0.35em -0.35em -0.35em);
+/* Estado final: maior que a caixa, nada cortado */
+[data-reveal-title][data-revealed] > *:not([class*="srOnly"]) {
+  clip-path: inset(-0.35em);
 }
 
 /* ---- Mobile: distâncias menores ---- */
@@ -70,7 +83,7 @@
 /* ---- Reduced motion: tudo visível, sem transição ---- */
 @media (prefers-reduced-motion: reduce) {
   [data-reveal],
-  [data-reveal-title] {
+  [data-reveal-title] > * {
     opacity: 1 !important;
     translate: none !important;
     clip-path: none !important;
