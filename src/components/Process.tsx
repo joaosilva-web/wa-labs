@@ -53,7 +53,34 @@ interface StepItemProps {
 function StepItem({ item, index, active, pinned, glassRefraction }: StepItemProps) {
   const cardRef = useRef<HTMLDivElement>(null)
   const isActive = index === active
-  const showGlass = isActive || !pinned
+
+  /* showGlass: verdadeiro na etapa ativa E nos ~650ms após perder o foco, para
+     que o vidro se dissolva suavemente via --active 0→1→0 (600ms transition).
+     Mobile (!pinned): todas as etapas sempre com glass fosco. */
+  const [showGlass, setShowGlass] = useState(() => !pinned || isActive)
+  const wasActiveRef = useRef(isActive)
+  const fadeTimer = useRef<ReturnType<typeof setTimeout>>(0)
+
+  useEffect(() => {
+    clearTimeout(fadeTimer.current)
+
+    if (!pinned) {
+      setShowGlass(true)
+      wasActiveRef.current = false
+      return
+    }
+
+    if (isActive) {
+      setShowGlass(true)
+      wasActiveRef.current = true
+    } else if (wasActiveRef.current) {
+      // acabou de deixar de ser ativa: mantém o vidro por 650ms (duração do fade-out)
+      wasActiveRef.current = false
+      fadeTimer.current = setTimeout(() => setShowGlass(false), 650)
+    }
+  }, [isActive, pinned])
+
+  useEffect(() => () => clearTimeout(fadeTimer.current), [])
 
   /* tilt + glare: só na etapa ativa do desktop com fine pointer */
   const fine = useCardTilt(cardRef, { enabled: pinned && isActive })

@@ -11,10 +11,10 @@
  *   Mobile: todas as etapas recebem LiquidGlass fosco.
  */
 
-/* @property para animar o scale da etapa ativa sem transition: transform */
+/* @property: herdável para que .stepCard (filho de .step) leia o valor animado */
 @property --active {
   syntax: '<number>';
-  inherits: false;
+  inherits: true;
   initial-value: 0;
 }
 .process {
@@ -148,41 +148,55 @@
 .stepCard {
   position: relative;
   border-radius: var(--radius-lg);
-  /* scale: 0.96 inativo → 1.0 ativo (animado via --active CSS transition) */
+  /* scale: 0.96 inativo → 1.0 ativo; rotação vem do useCardTilt via rAF */
   transform:
     scale(calc(0.96 + 0.04 * var(--active, 0)))
     rotateX(calc(var(--rx, 0) * 1deg))
     rotateY(calc(var(--ry, 0) * 1deg));
+  /* sombra externa: aparece/some junto com o vidro */
+  box-shadow:
+    0 var(--space-4) var(--space-16) calc(-1 * var(--space-8))
+    color-mix(in srgb, rgb(0 0 0 / 0.14) calc(var(--active, 0) * 100%), transparent);
 }
 
-/* reduced motion: sem tilt, só scale instantâneo via global.css transition: none */
+/* reduced motion: sem tilt; scale e sombra permanecem (transition: none do global.css torna instantâneo) */
 @media (prefers-reduced-motion: reduce) {
   .stepCard {
-    transform: none;
+    transform: scale(calc(0.96 + 0.04 * var(--active, 0)));
   }
 }
 
 /* ---------- stepGlass: LiquidGlass posicionado absolutamente ---------- */
+/*
+ * Toda a intensidade do material é derivada de --active (herdado do .step).
+ * --active: 0 → vidro invisível; 1 → material leve completo.
+ * A transição de 600ms no .step anima --active e todas as vars cascateadas.
+ * Sem animation: a aparência sobe e desce junto com --active.
+ */
 .stepGlass {
   position: absolute;
   inset: 0;
   z-index: 1;
   border-radius: inherit;
-  /* material leve (fundo claro do Processo) */
-  --lg-tint: rgb(255 255 255 / 0.30);
-  --lg-tint-highlight: rgb(255 255 255 / 0.08);
-  --lg-shine: 0.3;
-  --lg-rim-outline: rgb(0 0 0 / 0.05);
-  --lg-rim-top: rgb(255 255 255 / 0.85);
+
+  /* tint: branco 30% quando ativo, transparente quando inativo */
+  --lg-tint: color-mix(in srgb, rgb(255 255 255 / 0.30) calc(var(--active, 0) * 100%), transparent);
+  --lg-tint-highlight: color-mix(in srgb, rgb(255 255 255 / 0.08) calc(var(--active, 0) * 100%), transparent);
+
+  /* brilho especular e blur reduzidos a zero quando inativo */
+  --lg-shine: calc(0.3 * var(--active, 0));
+  --lg-blur: calc(2px * var(--active, 0));
+  --lg-saturate: calc(1 + 0.1 * var(--active, 0));
+
+  /* borda: deriva de --active */
+  --lg-rim-outline: color-mix(in srgb, rgb(0 0 0 / 0.05) calc(var(--active, 0) * 100%), transparent);
+  --lg-rim-top: color-mix(in srgb, rgb(255 255 255 / 0.85) calc(var(--active, 0) * 100%), transparent);
   --lg-rim-base: transparent;
   --lg-rim-inner: transparent;
-  /* entrada suave quando montado (etapa se torna ativa) */
-  animation: stepGlassEnter 500ms var(--ease) both;
-}
 
-@keyframes stepGlassEnter {
-  from { scale: 0.97; }
-  to   { scale: 1; }
+  /* fosco (Safari/Firefox e durante o scroll no Chromium): também faz fade */
+  --lg-fallback-blur: calc(8px * var(--active, 0));
+  --lg-fallback-saturate: calc(1 + 0.6 * var(--active, 0));
 }
 
 /* ---------- stepContent: conteúdo acima do vidro ---------- */
