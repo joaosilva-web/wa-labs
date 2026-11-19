@@ -62,6 +62,53 @@ export function buildGlassMap(w: number, h: number, bevel: number): string {
   return canvas.toDataURL('image/png')
 }
 
+/**
+ * Máscara do blur graduado pra mesma pílula (stadium) w × h: branco com alfa
+ * 0 no miolo → 1 na borda. Usada num <feComposite operator="in"> pra que o blur
+ * forte só apareça perto da borda.
+ * - `sharp` (0 → 1): fração do raio, a partir do eixo central, que fica 100% nítida
+ * - do `sharp` até a borda, o alfa sobe num smoothstep (sem degrau visível)
+ *
+ * Retorna uma data URL (PNG) pra passar ao <feImage>. Gere uma vez por tamanho.
+ */
+export function buildEdgeMask(w: number, h: number, sharp: number): string {
+  const canvas = document.createElement('canvas')
+  canvas.width = w
+  canvas.height = h
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return ''
+
+  const img = ctx.createImageData(w, h)
+  const data = img.data
+  const r = Math.min(w, h) / 2
+  const horizontal = w >= h
+  const ax = horizontal ? r : w / 2
+  const ay = horizontal ? h / 2 : r
+  const bx = horizontal ? w - r : w / 2
+  const by = horizontal ? h / 2 : h - r
+  const ramp = Math.max(1 - sharp, 0.001)
+
+  for (let y = 0; y < h; y++) {
+    for (let x = 0; x < w; x++) {
+      const px = x + 0.5
+      const py = y + 0.5
+      const cx = Math.min(Math.max(px, Math.min(ax, bx)), Math.max(ax, bx))
+      const cy = Math.min(Math.max(py, Math.min(ay, by)), Math.max(ay, by))
+      // 0 no eixo central da pílula → 1 na borda
+      const d = Math.hypot(cx - px, cy - py) / r
+      const t = Math.min(1, Math.max(0, (d - sharp) / ramp))
+      const a = t * t * (3 - 2 * t)
+
+      const i = (y * w + x) * 4
+      data[i] = data[i + 1] = data[i + 2] = 255
+      data[i + 3] = Math.round(a * 255)
+    }
+  }
+
+  ctx.putImageData(img, 0, 0)
+  return canvas.toDataURL('image/png')
+}
+
 type UAData = { brands?: { brand: string }[] }
 
 /**

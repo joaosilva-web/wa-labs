@@ -5,7 +5,7 @@ import { useCardTilt } from '../hooks/useCardTilt'
 import { useProximityWeight } from '../hooks/useProximityWeight'
 import { useViewProgress } from '../hooks/useViewProgress'
 import { KanjiStrokes, type KanjiStrokesHandle } from './KanjiStrokes'
-import { CardLens } from './CardLens'
+import { CardLens, type CardLensHandle } from './CardLens'
 import { SectionMeta } from './SectionMeta'
 import styles from './About.module.css'
 
@@ -49,6 +49,10 @@ function letterSpans(text: string): ReactNode {
   ))
 }
 
+/* Vidro da foto: força da refração do bisel parada → ondulando no máximo (mouse rápido). */
+const LENS_SCALE = 75
+const LENS_SCALE_RIPPLE = 95
+
 const clamp01 = (n: number) => Math.min(1, Math.max(0, n))
 
 export function About() {
@@ -67,8 +71,12 @@ export function About() {
 
   const reduced = useMediaQuery(REDUCED_MOTION)
   const hasPointer = usePointerEffects()
-  /* foto como carta: tilt 3D + vidro no hover (só com mouse) */
-  const cardTilt = useCardTilt(photoColRef)
+  /* foto como carta: tilt 3D no hover + vidro sempre visível (só com mouse);
+     o bisel ondula com a velocidade do mouse (setScale direto no filtro, sem re-render) */
+  const lensRef = useRef<CardLensHandle>(null)
+  const cardTilt = useCardTilt(photoColRef, {
+    onRipple: (a) => lensRef.current?.setScale(LENS_SCALE + (LENS_SCALE_RIPPLE - LENS_SCALE) * a),
+  })
 
   /* --- 1. Curva de entrada: --enter (0→1) enquanto o topo da seção
             vai do fundo da viewport até 30% do topo. -------------------- */
@@ -304,17 +312,18 @@ export function About() {
                   onError={() => setPhotoFailed(true)}
                 />
               )}
-              {/* vidro no hover: lente que refrata só o bisel (o rosto fica nítido no miolo),
-                  borda de luz e reflexo que corre com a inclinação */}
+              {/* vidro (sempre visível): lente que refrata o bisel com blur graduado (o rosto fica
+                  nítido no miolo), borda de luz e reflexo líquido que segue o cursor */}
               {cardTilt && (
                 <>
                   {!photoFailed && (
                     <CardLens
+                      ref={lensRef}
                       src={about.photo.src}
                       className={styles.photoLens}
                       imgClassName={styles.photo}
                       bevel={48}
-                      scale={75}
+                      scale={LENS_SCALE}
                       chromatic
                     />
                   )}
