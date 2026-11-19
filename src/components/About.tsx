@@ -6,7 +6,6 @@ import { useProximityWeight } from '../hooks/useProximityWeight'
 import { useViewProgress } from '../hooks/useViewProgress'
 import { KanjiStrokes, type KanjiStrokesHandle } from './KanjiStrokes'
 import { CardLens, type CardLensHandle } from './CardLens'
-import { GlassCard } from './GlassCard'
 import { SectionMeta } from './SectionMeta'
 import styles from './About.module.css'
 
@@ -296,7 +295,8 @@ export function About() {
                       chromatic
                     />
                   )}
-                  <GlassCard className={styles.photoGlass} />
+                  <div className={styles.photoRim} aria-hidden="true" />
+                  <div className={styles.photoGlare} aria-hidden="true" />
                 </>
               )}
             </div>
