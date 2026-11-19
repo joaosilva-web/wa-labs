@@ -1,4 +1,4 @@
-import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { about, sections } from '../data/content'
 import { REDUCED_MOTION, useMediaQuery, usePointerEffects } from '../hooks/useMediaQuery'
 import { useProximityWeight } from '../hooks/useProximityWeight'
@@ -58,6 +58,7 @@ export function About() {
   const whyAreaRef = useRef<HTMLDivElement>(null)
   const whyStickyRef = useRef<HTMLDivElement>(null)
   const whySvgRef = useRef<SVGSVGElement>(null)
+  const [photoFailed, setPhotoFailed] = useState(false)
   const spiralPathRef = useRef<SVGPathElement>(null)
   const spiralGroupRef = useRef<SVGGElement>(null)
   const kanjiRef = useRef<KanjiStrokesHandle>(null)
@@ -280,25 +281,23 @@ export function About() {
           {/* ---- Coluna da foto ---- */}
           <div ref={photoColRef} className={styles.photoCol}>
             <div className={styles.photoWrap}>
-              <img
-                src={about.photo.src}
-                alt={about.photo.alt}
-                width={about.photo.width}
-                height={about.photo.height}
-                loading="lazy"
-                decoding="async"
-                className={styles.photo}
-                onError={(e) => {
-                  const img = e.currentTarget
-                  img.style.display = 'none'
-                  const fallback = img.nextElementSibling as HTMLElement | null
-                  if (fallback) fallback.removeAttribute('hidden')
-                }}
-              />
-              {/* Fallback: 和 kanji sobre fundo verde */}
-              <div className={styles.photoFallback} hidden aria-hidden="true">
-                和
-              </div>
+              {photoFailed ? (
+                /* Fallback: 和 kanji sobre fundo verde (só se a foto não carregar) */
+                <div className={styles.photoFallback} aria-hidden="true">
+                  和
+                </div>
+              ) : (
+                <img
+                  src={about.photo.src}
+                  alt={about.photo.alt}
+                  width={about.photo.width}
+                  height={about.photo.height}
+                  loading="lazy"
+                  decoding="async"
+                  className={styles.photo}
+                  onError={() => setPhotoFailed(true)}
+                />
+              )}
             </div>
           </div>
 

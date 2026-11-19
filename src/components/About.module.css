@@ -178,27 +178,32 @@
 }
 
 /* ---------- fatos ---------- */
+/* 3 colunas iguais; abaixo de 600px empilha */
 .facts {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0;
   margin: 0;
   padding-top: var(--space-6);
 }
 
 .fact {
-  flex: 1 0 120px;
   position: relative;
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
   padding-block: var(--space-4);
-  padding-inline-end: var(--space-6);
+  padding-inline-end: var(--space-4);
   border-right: 1px solid color-mix(in srgb, var(--color-inverse-text) 15%, transparent);
 }
 
 .fact:last-child {
   border-right: none;
+}
+
+/* respiro depois da divisória */
+.fact + .fact {
+  padding-inline-start: var(--space-4);
 }
 
 /* Borda superior que se desenha da esquerda pra direita */
@@ -241,11 +246,26 @@
   color: var(--muted);
 }
 
+/* menor que --text-xl: "em até 1 dia útil" cabe em 1–2 linhas na coluna de ~200px (1366px) */
 .factValue {
   font-family: var(--font-display);
-  font-size: var(--text-xl);
+  font-size: clamp(1.125rem, 0.85rem + 0.55vw, 1.5rem);
   font-weight: 700;
+  line-height: 1.2;
+  text-wrap: balance;
   color: var(--color-inverse-text);
+}
+
+@media (max-width: 599px) {
+  .facts {
+    grid-template-columns: 1fr;
+  }
+
+  .fact,
+  .fact + .fact {
+    padding-inline: 0;
+    border-right: none;
+  }
 }
 
 /* ---------- bloco "Por que Wa?" — área tall com conteúdo sticky ---------- */

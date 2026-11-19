@@ -245,8 +245,8 @@ export const about = {
   ],
   facts: [
     { label: 'Experiência', value: '3 anos' },
-    { label: 'Stack', value: 'React · TypeScript · Flutter' },
-    { label: 'Localização', value: 'Maringá — PR' },
+    { label: 'Resposta', value: 'em até 1 dia útil' },
+    { label: 'Atendimento', value: 'direto comigo' },
   ],
   photo: {
     src: '/images/joao-gustavo.jpg',
