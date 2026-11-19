@@ -1,9 +1,11 @@
-import { useEffect, useRef, type CSSProperties, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { about, sections } from '../data/content'
 import { REDUCED_MOTION, useMediaQuery, usePointerEffects } from '../hooks/useMediaQuery'
+import { useCardTilt } from '../hooks/useCardTilt'
 import { useProximityWeight } from '../hooks/useProximityWeight'
 import { useViewProgress } from '../hooks/useViewProgress'
 import { KanjiStrokes, type KanjiStrokesHandle } from './KanjiStrokes'
+import { CardLens } from './CardLens'
 import { SectionMeta } from './SectionMeta'
 import styles from './About.module.css'
 
@@ -58,12 +60,15 @@ export function About() {
   const whyAreaRef = useRef<HTMLDivElement>(null)
   const whyStickyRef = useRef<HTMLDivElement>(null)
   const whySvgRef = useRef<SVGSVGElement>(null)
+  const [photoFailed, setPhotoFailed] = useState(false)
   const spiralPathRef = useRef<SVGPathElement>(null)
   const spiralGroupRef = useRef<SVGGElement>(null)
   const kanjiRef = useRef<KanjiStrokesHandle>(null)
 
   const reduced = useMediaQuery(REDUCED_MOTION)
   const hasPointer = usePointerEffects()
+  /* foto como carta: tilt 3D + vidro no hover (só com mouse) */
+  const cardTilt = useCardTilt(photoColRef)
 
   /* --- 1. Curva de entrada: --enter (0→1) enquanto o topo da seção
             vai do fundo da viewport até 30% do topo. -------------------- */
@@ -95,7 +100,7 @@ export function About() {
     }
   }, [reduced])
 
-  /* --- 2. Progresso geral da seção para parallax e duotone ----------- */
+  /* --- 2. Progresso geral da seção para o parallax da foto ----------- */
   useViewProgress(sectionRef, { varName: '--section-p', start: 1.0, end: 0.0 })
 
   /* --- 3. Reveal do body: IntersectionObserver (uma vez) ------------- */
@@ -279,26 +284,44 @@ export function About() {
         <div ref={bodyRef} className={styles.body}>
           {/* ---- Coluna da foto ---- */}
           <div ref={photoColRef} className={styles.photoCol}>
+            {/* sombra fora do clip-path da pílula: inclina junto e se desloca com o tilt */}
+            {cardTilt && <div className={styles.photoShadow} aria-hidden="true" />}
             <div className={styles.photoWrap}>
-              <img
-                src={about.photo.src}
-                alt={about.photo.alt}
-                width={about.photo.width}
-                height={about.photo.height}
-                loading="lazy"
-                decoding="async"
-                className={styles.photo}
-                onError={(e) => {
-                  const img = e.currentTarget
-                  img.style.display = 'none'
-                  const fallback = img.nextElementSibling as HTMLElement | null
-                  if (fallback) fallback.removeAttribute('hidden')
-                }}
-              />
-              {/* Fallback: 和 kanji sobre fundo verde */}
-              <div className={styles.photoFallback} hidden aria-hidden="true">
-                和
-              </div>
+              {photoFailed ? (
+                /* Fallback: 和 kanji sobre fundo verde (só se a foto não carregar) */
+                <div className={styles.photoFallback} aria-hidden="true">
+                  和
+                </div>
+              ) : (
+                <img
+                  src={about.photo.src}
+                  alt={about.photo.alt}
+                  width={about.photo.width}
+                  height={about.photo.height}
+                  loading="lazy"
+                  decoding="async"
+                  className={styles.photo}
+                  onError={() => setPhotoFailed(true)}
+                />
+              )}
+              {/* vidro no hover: lente que refrata só o bisel (o rosto fica nítido no miolo),
+                  borda de luz e reflexo que corre com a inclinação */}
+              {cardTilt && (
+                <>
+                  {!photoFailed && (
+                    <CardLens
+                      src={about.photo.src}
+                      className={styles.photoLens}
+                      imgClassName={styles.photo}
+                      bevel={48}
+                      scale={75}
+                      chromatic
+                    />
+                  )}
+                  <div className={styles.photoRim} aria-hidden="true" />
+                  <div className={styles.photoGlare} aria-hidden="true" />
+                </>
+              )}
             </div>
           </div>
 
